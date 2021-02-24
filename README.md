@@ -38,7 +38,7 @@ git rebase master (para tratar de conflitos, sigam as instruções da command li
 
 Enviar para o Github:
 ```
-git push --set-upstream origin new-feature (o set-upstream é so para depois poderem apenas fazer git pull)
+git push --set-upstream origin new-feature (o set-upstream é so para depois poderem apenas fazer git push)
 ```
 
 
