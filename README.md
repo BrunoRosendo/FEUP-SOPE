@@ -40,4 +40,8 @@ Enviar para o Github:
 ```
 git push --set-upstream origin new-feature (o set-upstream é so para depois poderem apenas fazer git pull)
 ```
-:D
+
+
+Notas:
+
+- Não adicionem ficheiros por upload. Isso escreve por cima e não verifica conflitos nem dá para checarmos o código
