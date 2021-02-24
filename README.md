@@ -40,3 +40,4 @@ Enviar para o Github:
 ```
 git push --set-upstream origin new-feature (o set-upstream é so para depois poderem apenas fazer git pull)
 ```
+:D
