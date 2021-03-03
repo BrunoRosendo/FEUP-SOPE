@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <dirent.h>
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
 typedef enum userType {owner, group, others, all} userType;
@@ -136,7 +137,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
             fprintf(stderr, "Invalid input (permission action)\n");
             exit(3);
     }
-    printf("Compelete: %s\n", modeString);
+    printf("Complete: %s\n", modeString);
     i++; int j;  // REDO THIS LATER
     for (j = 0; modeString[i] != '\0'; ++i, ++j)
         cutString[j] = modeString[i];
@@ -232,7 +233,46 @@ mode_t getOctalFromString(char *modeString)
     return mode;
 }
 
+void applyToDirectory(char* directoryPath){
+    // opens a directory. Returns a valid pointer if the successfully, NULL otherwise
+    DIR *dirPointer = opendir(directoryPath);
+
+    struct dirent *dirEntry;
+    struct stat inode;
+    char name[1000];
+
+    if (dirPointer == NULL){
+        dirEntry = readdir(dirPointer);
+        sprintf(name, "%s/%s", directoryPath, dirEntry->d_name); // sends formatted output to a string(name) / name will be the absolute path to the next file
+        lstat(name, &inode);                                     // get info about the file/folder at the path name
+        if(S_ISREG(inode.st_mode)){     // if it is a file
+
+        }
+        printf("Error opening directory\n");
+        return;
+    }
+
+    while ((dirEntry = readdir(dirPointer)) != 0)
+    {
+        sprintf(name, "%s/%s", directoryPath, dirEntry->d_name); // sends formatted output to a string(name) / name will be the absolute path to the next file
+        lstat(name, &inode);                                     // get info about the file/folder at the path name
+
+        // test the type of file
+        if (S_ISDIR(inode.st_mode))
+            printf("dir ");
+        else if (S_ISREG(inode.st_mode))
+            printf("fis ");
+        else if (S_ISLNK(inode.st_mode))
+            printf("lnk ");
+        else
+            ;
+        printf(" %s\n", dirEntry->d_name);
+    }
+}
+
 int main(int argc, char* argv[], char* envp[]) {
+    applyToDirectory(argv[1]);
+    /*
     if (argc < 3) {
         fprintf(stderr, "Wrong number of arguments! ");
         printf("Call the function with:\nxmod [OPTIONS] MODE FILE/DIR\n");
@@ -249,6 +289,7 @@ int main(int argc, char* argv[], char* envp[]) {
     } else {
         changePermsWithString(argv[argc - 1], modeString, &options);
     }
-
+    */
     return 0;
 }
+
