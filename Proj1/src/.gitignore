@@ -2,3 +2,4 @@ test.txt
 *.o
 xmod
 infer-out
+*.gch
