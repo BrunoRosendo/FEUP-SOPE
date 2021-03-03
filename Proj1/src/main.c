@@ -24,7 +24,7 @@ void changePermsWithOctal(const char *pathname, mode_t mode) {
 }
 
 // assumes valid arguments
-void changePermsWithString(const char *pathname, const char *modeString, Options *options) {
+mode_t changePermsWithString(const char *pathname, const char *modeString, Options *options) {
     mode_t mode = 0;
     switch (options->user) {
         case owner:
@@ -75,7 +75,8 @@ void changePermsWithString(const char *pathname, const char *modeString, Options
             fprintf(stderr, "Invalid userType\n");
             exit(3);
     }
-    changePermsWithOctal(pathname, mode);
+    //changePermsWithOctal(pathname, mode);
+    return mode;
 }
 
 void parseMode(const char *modeString, Options *options, char cutString[]) {
@@ -233,7 +234,7 @@ mode_t getOctalFromString(char *modeString)
     return mode;
 }
 
-void applyToDirectory(char* directoryPath){
+void applyToDirectory(char* directoryPath, mode_t mode){
     // opens a directory. Returns a valid pointer if the successfully, NULL otherwise
     DIR *dirPointer = opendir(directoryPath);
 
@@ -242,13 +243,13 @@ void applyToDirectory(char* directoryPath){
     char name[1000];
 
     if (dirPointer == NULL){
-        dirEntry = readdir(dirPointer);
-        sprintf(name, "%s/%s", directoryPath, dirEntry->d_name); // sends formatted output to a string(name) / name will be the absolute path to the next file
-        lstat(name, &inode);                                     // get info about the file/folder at the path name
+        lstat(directoryPath, &inode);                                     // get info about the file/folder at the path name
         if(S_ISREG(inode.st_mode)){     // if it is a file
-
+            changePermsWithOctal(directoryPath, mode);
         }
-        printf("Error opening directory\n");
+        else{
+            printf("Error opening directory\n");
+        }
         return;
     }
 
@@ -260,8 +261,10 @@ void applyToDirectory(char* directoryPath){
         // test the type of file
         if (S_ISDIR(inode.st_mode))
             printf("dir ");
-        else if (S_ISREG(inode.st_mode))
+        else if (S_ISREG(inode.st_mode)){
             printf("fis ");
+            changePermsWithOctal(name, mode);
+        }
         else if (S_ISLNK(inode.st_mode))
             printf("lnk ");
         else
@@ -271,8 +274,6 @@ void applyToDirectory(char* directoryPath){
 }
 
 int main(int argc, char* argv[], char* envp[]) {
-    applyToDirectory(argv[1]);
-    /*
     if (argc < 3) {
         fprintf(stderr, "Wrong number of arguments! ");
         printf("Call the function with:\nxmod [OPTIONS] MODE FILE/DIR\n");
@@ -282,14 +283,16 @@ int main(int argc, char* argv[], char* envp[]) {
     Options options;
     char modeString[10];
     parseMode(argv[argc - 2], &options, modeString);
-
+    mode_t mode;
     if (options.octal) {
-        mode_t mode = getOctalFromString(modeString);
-        changePermsWithOctal(argv[2], mode);
+        mode = getOctalFromString(modeString);
+        //changePermsWithOctal(argv[argc - 1], mode);
     } else {
-        changePermsWithString(argv[argc - 1], modeString, &options);
+        mode = changePermsWithString(argv[argc - 1], modeString, &options);
     }
-    */
+
+    applyToDirectory(argv[argc-1], mode);
+    
     return 0;
 }
 
