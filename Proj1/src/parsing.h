@@ -26,4 +26,6 @@ mode_t getOctalFromOctalString(char *modeString);
 
 mode_t getOctalFromExplicitString(const char *modeString, Options *options);
 
+void parseFlag(char *flag, Options *options);
+
 #endif

@@ -66,12 +66,10 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
     cutString[j] = 0;
 }
 
-mode_t getOctalFromOctalString(char *modeString)
-{
+mode_t getOctalFromOctalString(char *modeString) {
     mode_t mode = 0;
 
-    switch (modeString[1])
-    {
+    switch (modeString[1]) {
     case '0':
         break;
     case '1':
@@ -97,8 +95,7 @@ mode_t getOctalFromOctalString(char *modeString)
         exit(3);
     }
 
-    switch (modeString[2])
-    {
+    switch (modeString[2]) {
     case '0':
         break;
     case '1':
@@ -124,8 +121,7 @@ mode_t getOctalFromOctalString(char *modeString)
         exit(3);
     }
 
-    switch (modeString[3])
-    {
+    switch (modeString[3]) {
     case '0':
         break;
     case '1':
@@ -205,6 +201,29 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options) {
             fprintf(stderr, "Invalid userType\n");
             exit(3);
     }
-    //changePermsWithOctal(pathname, mode);
     return mode;
+}
+
+void parseFlag(char *flag, Options *options) {
+    if (flag[0] != '-') {
+        fprintf(stderr, "Input Error. All flags should start with '-'\n");
+        exit(3);
+    }
+
+    for (int i = 1; flag[i] != 0; ++i) {
+        switch (flag[i]) {
+            case 'v':
+                options->output = verbose;
+                break;
+            case 'c':
+                options->output = onChange;
+                break;
+            case 'R':
+                options->recursive = true;
+                break;
+            default:
+                fprintf(stderr, "Invalid input. Invalid flag\n");
+                exit(3);
+        }
+    }
 }

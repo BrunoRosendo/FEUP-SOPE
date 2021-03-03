@@ -6,13 +6,10 @@
 #include "parsing.h"
 #define LOGFILE "LOG_FILENAME"
 
-bool setLogFile(char **envp, FILE *file)
-{
-    for (char **env = envp; *env != 0; env++)
-    {
+bool setLogFile(char **envp, FILE *file) {
+    for (char **env = envp; *env != 0; env++) {
         char *thisEnv = *env;
-        if (strstr(thisEnv, LOGFILE) != 0)
-        {
+        if (strstr(thisEnv, LOGFILE) != 0) {
             const char delim[2] = "=";
             strtok(thisEnv, delim);
             char *filename = strtok(NULL, delim);
@@ -24,8 +21,7 @@ bool setLogFile(char **envp, FILE *file)
 }
 
 // assumes valid arguments
-void changePermsWithOctal(const char *pathname, mode_t mode)
-{
+void changePermsWithOctal(const char *pathname, mode_t mode) {
     chmod(pathname, mode);
 }
 
@@ -91,6 +87,12 @@ int main(int argc, char *argv[], char *envp[])
     }
 
     Options options;
+    options.recursive = false;  // default
+    options.output = simple;
+
+    for (int i = 1; i < argc - 2; ++i)
+        parseFlag(argv[i], &options);
+
     char modeString[10];
     parseMode(argv[argc - 2], &options, modeString);
     mode_t mode;
