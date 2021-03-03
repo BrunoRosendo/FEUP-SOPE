@@ -24,4 +24,6 @@ void parseMode(const char *modeString, Options *options, char cutString[]);
 
 mode_t getOctalFromString(char *modeString);
 
+mode_t getOctalFromDecimalString(const char *pathname, const char *modeString, Options *options);
+
 #endif

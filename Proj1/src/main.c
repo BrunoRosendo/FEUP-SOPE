@@ -28,62 +28,6 @@ void changePermsWithOctal(const char *pathname, mode_t mode){
     chmod(pathname, mode);
 }
 
-// assumes valid arguments
-mode_t changePermsWithString(const char *pathname, const char *modeString, Options *options) {
-    mode_t mode = 0;
-    switch (options->user) {
-        case owner:
-            if (modeString[0] == 'r')
-                mode |= 0400;
-            if (modeString[1] == 'w')
-                mode |= 0200;
-            if (modeString[2] == 'x')
-                mode |= 0100;
-            break;
-        case group:
-            if (modeString[0] == 'r')
-                mode |= 0040;
-            if (modeString[1] == 'w')
-                mode |= 0020;
-            if (modeString[2] == 'x')
-                mode |= 0010;
-            break;
-        case others:
-            if (modeString[0] == 'r')
-                mode |= 0004;
-            if (modeString[1] == 'w')
-                mode |= 0002;
-            if (modeString[2] == 'x')
-                mode |= 0001;
-            break;
-        case all:
-            if (modeString[0] == 'r')
-                mode |= 0400;
-            if (modeString[1] == 'w')
-                mode |= 0200;
-            if (modeString[2] == 'x')
-                mode |= 0100;
-            if (modeString[3] == 'r')
-                mode |= 0040;
-            if (modeString[4] == 'w')
-                mode |= 0020;
-            if (modeString[5] == 'x')
-                mode |= 0010;
-            if (modeString[6] == 'r')
-                mode |= 0004;
-            if (modeString[7] == 'w')
-                mode |= 0002;
-            if (modeString[8] == 'x')
-                mode |= 0001;
-            break;
-        default:
-            fprintf(stderr, "Invalid userType\n");
-            exit(3);
-    }
-    //changePermsWithOctal(pathname, mode);
-    return mode;
-}
-
 void applyToDirectory(char* directoryPath, mode_t mode){
     // opens a directory. Returns a valid pointer if the successfully, NULL otherwise
     DIR *dirPointer = opendir(directoryPath);
@@ -131,21 +75,13 @@ int main(int argc, char* argv[], char* envp[]) {
     }
 
     Options options;
-    FILE *logfile;
-    bool usingLogFile;
     char modeString[10];
     parseMode(argv[argc - 2], &options, modeString);
     mode_t mode;
     if (options.octal) {
-<<<<<<< HEAD
         mode = getOctalFromString(modeString);
-        //changePermsWithOctal(argv[argc - 1], mode);
-=======
-        mode_t mode = getOctalFromString(modeString);
-        changePermsWithOctal(argv[argc - 1], mode);
->>>>>>> master
     } else {
-        mode = changePermsWithString(argv[argc - 1], modeString, &options);
+        mode = getOctalFromDecimalString(argv[argc - 1], modeString, &options);
     }
 
     applyToDirectory(argv[argc-1], mode);
