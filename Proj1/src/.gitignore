@@ -1,5 +1,6 @@
 test.txt
+*.out
 *.o
+*.log
 xmod
-infer-out
-*.gch
+infer-out*.gch
