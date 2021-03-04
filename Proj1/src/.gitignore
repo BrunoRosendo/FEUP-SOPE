@@ -1,9 +1,8 @@
-test.txt
 *.out
 *.o
 *.log
 xmod
 infer-out
 /exDir
-example.txt
+*.txt
 *.xz

@@ -66,7 +66,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
     cutString[j] = 0;
 }
 
-mode_t getOctalFromString(char *modeString)
+mode_t getOctalFromOctalString(char *modeString)
 {
     mode_t mode = 0;
 
@@ -154,7 +154,7 @@ mode_t getOctalFromString(char *modeString)
 }
 
 // assumes valid arguments
-mode_t getOctalFromDecimalString(const char *pathname, const char *modeString, Options *options) {
+mode_t getOctalFromExplicitString(const char *modeString, Options *options) {
     mode_t mode = 0;
     switch (options->user) {
         case owner:
