@@ -30,7 +30,6 @@ void changePermsWithOctal(const char *pathname, mode_t mode)
 }
 
 void applyToPath(char *directoryPath, mode_t mode, Options *options){
-    options->recursive = true;
     if (options->recursive){
         // opens a directory. Returns a valid pointer if the successfully, NULL otherwise
         DIR *dirPointer = opendir(directoryPath);
