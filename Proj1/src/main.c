@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include "parsing.h"
+//(Domingos) -> no meu pc, em linux, estes includes não funcionam, aparecendo o erro "cannot open source file..."
 #define LOGFILE "LOG_FILENAME"
 
 bool setLogFile(char **envp, FILE *file) {

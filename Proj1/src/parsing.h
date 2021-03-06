@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
 typedef enum userType {owner, group, others, all} userType;
@@ -22,9 +23,15 @@ typedef struct Options {
 
 void parseMode(const char *modeString, Options *options, char cutString[]);
 
+
+// Genereate octacl from octal string.
 mode_t getOctalFromOctalString(char *modeString);
 
-mode_t getOctalFromExplicitString(const char *modeString, Options *options);
+// Reads permission from a file and returns an octal
+mode_t getPermissionsFromFile(char* filename)
+
+// Generate octal from string. Return octal
+mode_t getOctalFromExplicitString(const char *modeString, Options *options, char *filename);
 
 void parseFlag(char *flag, Options *options);
 

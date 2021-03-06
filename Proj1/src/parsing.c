@@ -77,6 +77,8 @@ mode_t getOctalFromOctalString(char *modeString) {
     case '2':
         mode |= 0200;
         break;
+    case '3':
+        mode |= 0300;
     case '4':
         mode |= 0400;
         break;
@@ -102,6 +104,8 @@ mode_t getOctalFromOctalString(char *modeString) {
         break;
     case '2':
         mode |= 0020;
+    case '3':
+        mode |= 0030;
         break;
     case '4':
         mode |= 0040;
@@ -129,6 +133,8 @@ mode_t getOctalFromOctalString(char *modeString) {
     case '2':
         mode |= 0002;
         break;
+    case '3':
+        mode |= 0003;
     case '4':
         mode |= 0004;
         break;
@@ -148,57 +154,203 @@ mode_t getOctalFromOctalString(char *modeString) {
     return mode;
 }
 
-// assumes valid arguments
-mode_t getOctalFromExplicitString(const char *modeString, Options *options) {
+// Reads permission from a file and returns an octal
+mode_t getPermissionsFromFile(char* filename){
+    struct stat fileStat;
+    if(stat(fileName, &fileStat) < 0){
+        return -1;  // error
+    }
+
+    printf("%o \n", fileStat.st_mode);
     mode_t mode = 0;
-    switch (options->user) {
-        case owner:
-            if (modeString[0] == 'r')
-                mode |= 0400;
-            if (modeString[1] == 'w')
-                mode |= 0200;
-            if (modeString[2] == 'x')
-                mode |= 0100;
+
+    if(fileStat.st_mode & S_IRUSR)
+        mode |= 0400;
+    
+    if(fileStat.st_mode & S_IWUSR)
+        mode |= 0200;
+    
+    if(fileStat.st_mode & S_IXUSR)
+        mode |= 0100;
+    
+    if(fileStat.st_mode & S_IRGRP)
+        mode |= 0040;
+
+    if(fileStat.st_mode & S_IWGRP)
+        mode |= 0020;
+
+    if(fileStat.st_mode & S_IXGRP)
+        mode |= 0010;
+    if(fileStat.st_mode & S_IROTH)
+        mode |= 0004;
+    if(fileStat.st_mode & S_IWOTH)
+        mode |= 0002;
+    if(fileStat.st_mode & S_IXOTH)
+        mode |= 0001;
+}
+
+
+// assumes valid arguments
+mode_t getOctalFromExplicitString(const char *modeString, Options *options, char *fileName) {
+    mode_t mode;
+    switch (options->action)
+    {
+        case substitute:
+            mode = 0;
+            switch (options->user) {
+            case owner:
+                if (modeString[0] == 'r')
+                    mode |= 0400;   //100
+                if (modeString[1] == 'w')
+                    mode |= 0200;   //110
+                if (modeString[2] == 'x')
+                    mode |= 0100;   //111   
+                break;
+            case group:
+                if (modeString[0] == 'r')
+                    mode |= 0040;
+                if (modeString[1] == 'w')
+                    mode |= 0020;
+                if (modeString[2] == 'x')
+                    mode |= 0010;
+                break;
+            case others:
+                if (modeString[0] == 'r')
+                    mode |= 0004;
+                if (modeString[1] == 'w')
+                    mode |= 0002;
+                if (modeString[2] == 'x')
+                    mode |= 0001;
+                break;
+            case all:
+                if (modeString[0] == 'r')
+                    mode |= 0400;
+                if (modeString[1] == 'w')
+                    mode |= 0200;
+                if (modeString[2] == 'x')
+                    mode |= 0100;
+                if (modeString[3] == 'r')
+                    mode |= 0040;
+                if (modeString[4] == 'w')
+                    mode |= 0020;
+                if (modeString[5] == 'x')
+                    mode |= 0010;
+                if (modeString[6] == 'r')
+                    mode |= 0004;
+                if (modeString[7] == 'w')
+                    mode |= 0002;
+                if (modeString[8] == 'x')
+                    mode |= 0001;
+                break;
+            default:
+                fprintf(stderr, "Invalid userType\n");
+                exit(3);
+            }
+
+        case add:
+            mode = getPermissionsFromFile(fileName);
+            switch (options->user) {
+                case owner:
+                    if (modeString[0] == 'r')
+                        mode |= 0400;   //100
+                    if (modeString[1] == 'w')
+                        mode |= 0200;   //110
+                    if (modeString[2] == 'x')
+                        mode |= 0100;   //111   
+                    break;
+                case group:
+                    if (modeString[0] == 'r')
+                        mode |= 0040;
+                    if (modeString[1] == 'w')
+                        mode |= 0020;
+                    if (modeString[2] == 'x')
+                        mode |= 0010;
+                    break;
+                case others:
+                    if (modeString[0] == 'r')
+                        mode |= 0004;
+                    if (modeString[1] == 'w')
+                        mode |= 0002;
+                    if (modeString[2] == 'x')
+                        mode |= 0001;
+                    break;
+                case all:
+                    if (modeString[0] == 'r')
+                        mode |= 0400;
+                    if (modeString[1] == 'w')
+                        mode |= 0200;
+                    if (modeString[2] == 'x')
+                        mode |= 0100;
+                    if (modeString[3] == 'r')
+                        mode |= 0040;
+                    if (modeString[4] == 'w')
+                        mode |= 0020;
+                    if (modeString[5] == 'x')
+                        mode |= 0010;
+                    if (modeString[6] == 'r')
+                        mode |= 0004;
+                    if (modeString[7] == 'w')
+                        mode |= 0002;
+                    if (modeString[8] == 'x')
+                        mode |= 0001;
+                    break;
+                default:
+                    fprintf(stderr, "Invalid userType\n");
+                    exit(3);
+                }
             break;
-        case group:
-            if (modeString[0] == 'r')
-                mode |= 0040;
-            if (modeString[1] == 'w')
-                mode |= 0020;
-            if (modeString[2] == 'x')
-                mode |= 0010;
+        case erase:
+            mode = getPermissionsFromFile(fileName);
+            switch (options->user) {
+                case owner:
+                    if (modeString[0] == 'r')
+                        mode |= 7377;   //100
+                    if (modeString[1] == 'w')
+                        mode |= 7577;   //110
+                    if (modeString[2] == 'x')
+                        mode |= 7677;   //111   
+                    break;
+                case group:
+                    if (modeString[0] == 'r')
+                        mode |= 7737;
+                    if (modeString[1] == 'w')
+                        mode |= 7757;
+                    if (modeString[2] == 'x')
+                        mode |= 7767;
+                    break;
+                case others:
+                    if (modeString[0] == 'r')
+                        mode |= 7773;
+                    if (modeString[1] == 'w')
+                        mode |= 7775;
+                    if (modeString[2] == 'x')
+                        mode |= 7776;
+                    break;
+                case all:
+                    if (modeString[0] == 'r')
+                        mode |= 7377;   
+                    if (modeString[1] == 'w')
+                        mode |= 7577;   
+                    if (modeString[2] == 'x')
+                        mode |= 7677;      
+                    if (modeString[0] == 'r')
+                        mode |= 7737;
+                    if (modeString[1] == 'w')
+                        mode |= 7757;
+                    if (modeString[2] == 'x')
+                        mode |= 7767;
+                    if (modeString[0] == 'r')
+                        mode |= 7773;
+                    if (modeString[1] == 'w')
+                        mode |= 7775;
+                    if (modeString[2] == 'x')
+                        mode |= 7776;
+                    break;
+                default:
+                    fprintf(stderr, "Invalid userType\n");
+                    exit(3);
+                }
             break;
-        case others:
-            if (modeString[0] == 'r')
-                mode |= 0004;
-            if (modeString[1] == 'w')
-                mode |= 0002;
-            if (modeString[2] == 'x')
-                mode |= 0001;
-            break;
-        case all:
-            if (modeString[0] == 'r')
-                mode |= 0400;
-            if (modeString[1] == 'w')
-                mode |= 0200;
-            if (modeString[2] == 'x')
-                mode |= 0100;
-            if (modeString[3] == 'r')
-                mode |= 0040;
-            if (modeString[4] == 'w')
-                mode |= 0020;
-            if (modeString[5] == 'x')
-                mode |= 0010;
-            if (modeString[6] == 'r')
-                mode |= 0004;
-            if (modeString[7] == 'w')
-                mode |= 0002;
-            if (modeString[8] == 'x')
-                mode |= 0001;
-            break;
-        default:
-            fprintf(stderr, "Invalid userType\n");
-            exit(3);
     }
     return mode;
 }
