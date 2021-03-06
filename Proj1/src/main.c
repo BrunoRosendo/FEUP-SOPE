@@ -7,7 +7,8 @@
 //(Domingos) -> no meu pc, em linux, estes includes não funcionam, aparecendo o erro "cannot open source file..."
 #define LOGFILE "LOG_FILENAME"
 
-bool setLogFile(char **envp, FILE *file) {
+bool setLogFile(char **envp, FILE *file)
+{
     for (char **env = envp; *env != 0; env++) {
         char *thisEnv = *env;
         if (strstr(thisEnv, LOGFILE) != 0) {
@@ -93,7 +94,7 @@ int main(int argc, char *argv[], char *envp[]) {
     if (options.octal) {
         mode = getOctalFromOctalString(modeString);
     } else {
-        mode = getOctalFromExplicitString(modeString, &options);
+        mode = getOctalFromExplicitString(modeString, &options, argv[argc-1]);
     }
 
     applyToPath(argv[argc - 1], mode, &options);
