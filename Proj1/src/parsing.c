@@ -155,13 +155,13 @@ mode_t getOctalFromOctalString(char *modeString) {
 }
 
 // Reads permission from a file and returns an octal
-mode_t getPermissionsFromFile(char* filename){
+mode_t getPermissionsFromFile(char* fileName)
+{
     struct stat fileStat;
     if(stat(fileName, &fileStat) < 0){
         return -1;  // error
     }
-
-    printf("%o \n", fileStat.st_mode);
+    
     mode_t mode = 0;
 
     if(fileStat.st_mode & S_IRUSR)
@@ -187,24 +187,25 @@ mode_t getPermissionsFromFile(char* filename){
         mode |= 0002;
     if(fileStat.st_mode & S_IXOTH)
         mode |= 0001;
+    return mode;
 }
 
 
-// assumes valid arguments
-mode_t getOctalFromExplicitString(const char *modeString, Options *options, char *fileName) {
+// assumes valid argu   ments
+mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName)
+{
     mode_t mode;
-    switch (options->action)
-    {
+    switch (options->action){
         case substitute:
             mode = 0;
-            switch (options->user) {
+            switch (options->user){
             case owner:
                 if (modeString[0] == 'r')
-                    mode |= 0400;   //100
+                    mode |= 0400;
                 if (modeString[1] == 'w')
-                    mode |= 0200;   //110
+                    mode |= 0200;
                 if (modeString[2] == 'x')
-                    mode |= 0100;   //111   
+                    mode |= 0100;
                 break;
             case group:
                 if (modeString[0] == 'r')
@@ -246,17 +247,17 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options, char
                 fprintf(stderr, "Invalid userType\n");
                 exit(3);
             }
-
+            break;
         case add:
-            mode = getPermissionsFromFile(fileName);
-            switch (options->user) {
+            mode = getPermissionsFromFile(fileName);    
+            switch (options->user){
                 case owner:
                     if (modeString[0] == 'r')
-                        mode |= 0400;   //100
+                        mode |= 0400;
                     if (modeString[1] == 'w')
-                        mode |= 0200;   //110
+                        mode |= 0200;
                     if (modeString[2] == 'x')
-                        mode |= 0100;   //111   
+                        mode |= 0100;
                     break;
                 case group:
                     if (modeString[0] == 'r')
@@ -300,58 +301,61 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options, char
                 }
             break;
         case erase:
-            mode = getPermissionsFromFile(fileName);
-            switch (options->user) {
+            mode = getPermissionsFromFile(fileName);  
+            switch (options->user){
                 case owner:
                     if (modeString[0] == 'r')
-                        mode |= 7377;   //100
+                        mode &= 0377;   // 0377 =  011 111 111
                     if (modeString[1] == 'w')
-                        mode |= 7577;   //110
+                        mode &= 0577;   
                     if (modeString[2] == 'x')
-                        mode |= 7677;   //111   
+                        mode &= 0677;
                     break;
                 case group:
                     if (modeString[0] == 'r')
-                        mode |= 7737;
+                        mode &= 0737;
                     if (modeString[1] == 'w')
-                        mode |= 7757;
+                        mode &= 0757;
                     if (modeString[2] == 'x')
-                        mode |= 7767;
+                        mode &= 0767;
                     break;
                 case others:
                     if (modeString[0] == 'r')
-                        mode |= 7773;
+                        mode &= 0773;
                     if (modeString[1] == 'w')
-                        mode |= 7775;
+                        mode &= 0775;
                     if (modeString[2] == 'x')
-                        mode |= 7776;
+                        mode &= 0776;
                     break;
                 case all:
                     if (modeString[0] == 'r')
-                        mode |= 7377;   
+                        mode &= 0377;
                     if (modeString[1] == 'w')
-                        mode |= 7577;   
+                        mode &= 0577;
                     if (modeString[2] == 'x')
-                        mode |= 7677;      
-                    if (modeString[0] == 'r')
-                        mode |= 7737;
-                    if (modeString[1] == 'w')
-                        mode |= 7757;
-                    if (modeString[2] == 'x')
-                        mode |= 7767;
-                    if (modeString[0] == 'r')
-                        mode |= 7773;
-                    if (modeString[1] == 'w')
-                        mode |= 7775;
-                    if (modeString[2] == 'x')
-                        mode |= 7776;
+                        mode &= 0677;
+                    if (modeString[3] == 'r')
+                        mode &= 0737;
+                    if (modeString[4] == 'w')
+                        mode &= 0757;
+                    if (modeString[5] == 'x')
+                        mode &= 0767;
+                    if (modeString[6] == 'r')
+                        mode &= 0773;
+                    if (modeString[7] == 'w')
+                        mode &= 0775;
+                    if (modeString[8] == 'x')
+                        mode &= 0776;
                     break;
                 default:
                     fprintf(stderr, "Invalid userType\n");
                     exit(3);
                 }
             break;
-    }
+        default:
+            break;
+        }
+    //changePermsWithOctal(pathname, mode);
     return mode;
 }
 

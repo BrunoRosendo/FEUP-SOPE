@@ -24,14 +24,23 @@ typedef struct Options {
 void parseMode(const char *modeString, Options *options, char cutString[]);
 
 
-// Genereate octacl from octal string.
+/**
+ * Generate octal from octal string
+ * @return octal
+ */
 mode_t getOctalFromOctalString(char *modeString);
 
-// Reads permission from a file and returns an octal
-mode_t getPermissionsFromFile(char* filename)
+/**
+ * Reads the permissions from a file
+ * @return octal
+ */
+mode_t getPermissionsFromFile(char* fileName);
 
-// Generate octal from string. Return octal
-mode_t getOctalFromExplicitString(const char *modeString, Options *options, char *filename);
+/**
+ * Generate octal from string
+ * @return octal
+ *  */
+mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName);
 
 void parseFlag(char *flag, Options *options);
 
