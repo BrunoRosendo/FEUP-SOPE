@@ -59,10 +59,9 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
             fprintf(stderr, "Invalid input (permission action)\n");
             exit(3);
     }
-    i++; int j;  // REDO THIS LATER
-    for (j = 0; modeString[i] != '\0'; ++i, ++j)
+    i++; int j;  // This should be OK
+    for (j = 0; modeString[i] != 0; ++i, ++j)
         cutString[j] = modeString[i];
-    ++j;
     cutString[j] = 0;
 }
 
