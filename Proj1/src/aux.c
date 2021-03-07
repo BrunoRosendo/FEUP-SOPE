@@ -1,4 +1,4 @@
-#include "parsing.h"
+#include "aux.h"
 
 void parseMode(const char *modeString, Options *options, char cutString[]) {
     // Check if it's in octal mode
@@ -192,7 +192,7 @@ mode_t getPermissionsFromFile(char* fileName)
 }
 
 
-// assumes valid argu   ments
+// assumes valid arguments
 mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName)
 {
     mode_t mode;
@@ -356,7 +356,6 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options, char
         default:
             break;
         }
-    //changePermsWithOctal(pathname, mode);
     return mode;
 }
 
