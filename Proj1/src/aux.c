@@ -68,6 +68,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
 mode_t getOctalFromOctalString(char *modeString) {
     mode_t mode = 0;
 
+
     switch (modeString[1]) {
     case '0':
         break;
