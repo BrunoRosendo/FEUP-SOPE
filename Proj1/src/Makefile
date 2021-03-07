@@ -1,13 +1,13 @@
 CFLAGS = -Wall
 
-xmod: main.o parsing.o
-	gcc -o xmod main.o parsing.o
+xmod: main.o aux.o
+	gcc -o xmod main.o aux.o
 
-main.o: main.c parsing.h
+main.o: main.c aux.h
 	gcc $(CFLAGS) -c main.c
 
-parsing.o: parsing.c parsing.h
-	gcc $(CFLAGS) -c parsing.c
+aux.o: aux.c aux.h
+	gcc $(CFLAGS) -c aux.c
 
 clean:
 	rm *o xmod
