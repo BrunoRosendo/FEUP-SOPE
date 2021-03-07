@@ -3,10 +3,11 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include "parsing.h"
+#include "aux.h"
 #define LOGFILE "LOG_FILENAME"
 
-bool setLogFile(char **envp, FILE *file) {
+bool setLogFile(char **envp, FILE *file)
+{
     for (char **env = envp; *env != 0; env++) {
         char *thisEnv = *env;
         if (strstr(thisEnv, LOGFILE) != 0) {
@@ -92,7 +93,7 @@ int main(int argc, char *argv[], char *envp[]) {
     if (options.octal) {
         mode = getOctalFromOctalString(modeString);
     } else {
-        mode = getOctalFromExplicitString(modeString, &options);
+        mode = getOctalFromExplicitString(modeString, &options, argv[argc-1]);
     }
 
     applyToPath(argv[argc - 1], mode, &options);

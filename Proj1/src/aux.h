@@ -1,5 +1,5 @@
-#ifndef PARSING_H
-#define PARSING_H
+#ifndef AUX_H
+#define AUX_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
 typedef enum userType {owner, group, others, all} userType;
@@ -22,9 +23,24 @@ typedef struct Options {
 
 void parseMode(const char *modeString, Options *options, char cutString[]);
 
+
+/**
+ * Generate octal from octal string
+ * @return octal
+ */
 mode_t getOctalFromOctalString(char *modeString);
 
-mode_t getOctalFromExplicitString(const char *modeString, Options *options);
+/**
+ * Reads the permissions from a file
+ * @return octal
+ */
+mode_t getPermissionsFromFile(char* fileName);
+
+/**
+ * Generate octal from string
+ * @return octal
+ *  */
+mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName);
 
 void parseFlag(char *flag, Options *options);
 
