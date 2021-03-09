@@ -61,7 +61,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             }
             printf(" %s\n", dirEntry->d_name);
         }
-        if (dirEntry != NULL) closedir(dirEntry);
+        if (dirPointer != NULL) closedir(dirPointer);
     } else {   // apply to the folder
         struct stat inode;
         lstat(directoryPath, &inode);  // get info about the file/folder at the path name
