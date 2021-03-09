@@ -42,6 +42,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             } else {
                 fprintf(stderr, "Error opening directory\n");
             }
+            closedir(dirPointer);
             return;
         }
 
