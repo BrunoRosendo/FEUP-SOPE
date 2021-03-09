@@ -5,13 +5,13 @@
 #include <ctype.h>
 #include "logs.h"
 
-void setLogfile(char **envp, struct logInfo *log) {
+void setLogFile(char **envp, struct logInfo *log) {
     for (char **env = envp; *env != 0; env++)     {
         char *thisEnv = *env;
         if (strstr(thisEnv, LOGFILE) != 0) {
             const char delim[2] = "=";
             strtok(thisEnv, delim);
-            char *filename = strtok_r(NULL, delim);
+            char *filename = strtok(NULL, delim);
             log->logfile = fopen(filename, "w");
             log->hasLogFile = true;
             return;
@@ -38,7 +38,7 @@ void logAction(struct logInfo *log, char *action, char *info) {
     clock_t now = clock();
     fprintf(
         log->logfile,
-        "%d ; %ld ; %s ; %s\n",
+        "%ld ; %d ; %s ; %s\n",
         now - log->startTime,
         pid,
         action,

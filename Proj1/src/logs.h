@@ -13,7 +13,7 @@ struct logInfo
 /**
  * Sets the log file
  */
-void setLogfile(char **envp, struct logInfo *log);
+void setLogFile(char **envp, struct logInfo *log);
 
 /**
  * Logs a line
