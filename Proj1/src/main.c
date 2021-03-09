@@ -4,22 +4,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include "aux.h"
-#define LOGFILE "LOG_FILENAME"
-
-bool setLogFile(char **envp, FILE *file)
-{
-    for (char **env = envp; *env != 0; env++) {
-        char *thisEnv = *env;
-        if (strstr(thisEnv, LOGFILE) != 0) {
-            const char delim[2] = "=";
-            strtok(thisEnv, delim);
-            char *filename = strtok(NULL, delim);
-            file = fopen(filename, "w");
-            return true;
-        }
-    }
-    return false;
-}
+#include "logs.h"
 
 // assumes valid arguments
 void changePermsWithOctal(const char *pathname, mode_t mode) {
