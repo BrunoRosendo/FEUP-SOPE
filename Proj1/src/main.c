@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <dirent.h>
 #include "aux.h"
 #include "logs.h"
 
@@ -13,7 +8,10 @@ void changePermsWithOctal(const char *pathname, mode_t mode) {
 
 void applyToPath(char *directoryPath, mode_t mode, Options *options) {
     if (options->recursive) {
-        // opens a directory. Returns a valid pointer if the successfully, NULL otherwise
+        /*
+        Opens a directory.
+        Returns a valid pointer if the successfully, NULL otherwise
+        */
         DIR *dirPointer = opendir(directoryPath);
 
         struct dirent *dirEntry;
@@ -21,7 +19,8 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         char name[1000];
 
         if (dirPointer == NULL) {
-            lstat(directoryPath, &inode);  // get info about the file/folder at the path name
+            // get info about the file/folder at the path name
+            lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode);
             } else {
@@ -31,9 +30,15 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         }
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
-            // sends formatted output to a string(name) / name will be the absolute path to the next file
-            sprintf(name, "%s/%s", directoryPath, dirEntry->d_name);
-            lstat(name, &inode);                                     //  get info about the file/folder at the path name
+            /*
+            sends formatted output to a string(name)
+            name will be the absolute path to the next file
+            */
+            snprintf(name, sizeof(name), "%s/%s",
+                    directoryPath, dirEntry->d_name);
+
+            // get info about the file/folder at the path name
+            lstat(name, &inode);
 
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
@@ -49,7 +54,8 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         if (dirPointer != NULL) closedir(dirPointer);
     } else {   // apply to the folder
         struct stat inode;
-        lstat(directoryPath, &inode);  // get info about the file/folder at the path name
+        // get info about the file/folder at the path name
+        lstat(directoryPath, &inode);
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             changePermsWithOctal(directoryPath, mode);
         } else {

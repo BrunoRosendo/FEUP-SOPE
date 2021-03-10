@@ -1,5 +1,5 @@
-#ifndef AUX_H
-#define AUX_H
+#ifndef AUX_H_
+#define AUX_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <sys/stat.h>
+#include <dirent.h>
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
 typedef enum userType {owner, group, others, all} userType;
@@ -40,8 +40,9 @@ mode_t getPermissionsFromFile(char* fileName);
  * Generate octal from string
  * @return octal
  *  */
-mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName);
+mode_t getOctalFromExplicitString(const char *modeString, Options *options,
+                                  char* fileName);
 
 void parseFlag(char *flag, Options *options);
 
-#endif
+#endif  // AUX_H_

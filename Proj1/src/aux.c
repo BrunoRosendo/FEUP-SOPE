@@ -59,7 +59,8 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
             fprintf(stderr, "Invalid input (permission action)\n");
             exit(3);
     }
-    i++; int j;  // This should be OK
+    i++;
+    int j;
     for (j = 0; modeString[i] != 0; ++i, ++j)
         cutString[j] = modeString[i];
     cutString[j] = 0;
@@ -156,50 +157,49 @@ mode_t getOctalFromOctalString(char *modeString) {
 }
 
 // Reads permission from a file and returns an octal
-mode_t getPermissionsFromFile(char* fileName)
-{
+mode_t getPermissionsFromFile(char* fileName) {
     struct stat fileStat;
-    if(stat(fileName, &fileStat) < 0){
+    if (stat(fileName, &fileStat) < 0) {
         return -1;  // error
     }
-    
+
     mode_t mode = 0;
 
-    if(fileStat.st_mode & S_IRUSR)
+    if (fileStat.st_mode & S_IRUSR)
         mode |= 0400;
-    
-    if(fileStat.st_mode & S_IWUSR)
+
+    if (fileStat.st_mode & S_IWUSR)
         mode |= 0200;
-    
-    if(fileStat.st_mode & S_IXUSR)
+
+    if (fileStat.st_mode & S_IXUSR)
         mode |= 0100;
-    
-    if(fileStat.st_mode & S_IRGRP)
+
+    if (fileStat.st_mode & S_IRGRP)
         mode |= 0040;
 
-    if(fileStat.st_mode & S_IWGRP)
+    if (fileStat.st_mode & S_IWGRP)
         mode |= 0020;
 
-    if(fileStat.st_mode & S_IXGRP)
+    if (fileStat.st_mode & S_IXGRP)
         mode |= 0010;
-    if(fileStat.st_mode & S_IROTH)
+    if (fileStat.st_mode & S_IROTH)
         mode |= 0004;
-    if(fileStat.st_mode & S_IWOTH)
+    if (fileStat.st_mode & S_IWOTH)
         mode |= 0002;
-    if(fileStat.st_mode & S_IXOTH)
+    if (fileStat.st_mode & S_IXOTH)
         mode |= 0001;
     return mode;
 }
 
 
 // assumes valid arguments
-mode_t getOctalFromExplicitString(const char *modeString, Options *options, char* fileName)
-{
+mode_t getOctalFromExplicitString(const char *modeString, Options *options,
+                                  char* fileName) {
     mode_t mode;
-    switch (options->action){
+    switch (options->action) {
         case substitute:
             mode = 0;
-            switch (options->user){
+            switch (options->user) {
             case owner:
                 if (modeString[0] == 'r')
                     mode |= 0400;
@@ -250,8 +250,8 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options, char
             }
             break;
         case add:
-            mode = getPermissionsFromFile(fileName);    
-            switch (options->user){
+            mode = getPermissionsFromFile(fileName);
+            switch (options->user) {
                 case owner:
                     if (modeString[0] == 'r')
                         mode |= 0400;
@@ -302,13 +302,13 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options, char
                 }
             break;
         case erase:
-            mode = getPermissionsFromFile(fileName);  
-            switch (options->user){
+            mode = getPermissionsFromFile(fileName);
+            switch (options->user) {
                 case owner:
                     if (modeString[0] == 'r')
                         mode &= 0377;   // 0377 =  011 111 111
                     if (modeString[1] == 'w')
-                        mode &= 0577;   
+                        mode &= 0577;
                     if (modeString[2] == 'x')
                         mode &= 0677;
                     break;
