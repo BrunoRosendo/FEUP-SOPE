@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 #include <dirent.h>
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
@@ -45,4 +48,8 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options,
 
 void parseFlag(char *flag, Options *options);
 
-#endif  // AUX_H_
+void changePermsWithOctal(const char *pathname, mode_t mode);
+
+void applyToPath(char *directoryPath, mode_t mode, Options *options);
+
+#endif
