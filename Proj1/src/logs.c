@@ -1,8 +1,3 @@
-#include <stdbool.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <ctype.h>
 #include "logs.h"
 
 void setLogFile(char **envp, struct logInfo *log) {
@@ -42,8 +37,7 @@ void logAction(struct logInfo *log, char *action, char *info) {
         now - log->startTime,
         pid,
         action,
-        info
-        );
+        info);
 }
 
 void logProcessCreation(struct logInfo *log, int argc, char *argv[]) {
@@ -91,7 +85,8 @@ void logSignalSent(struct logInfo *log, int signal, int pid) {
     free(sigName);
 }
 
-void logChangePerms(struct logInfo *log, char *path, mode_t oldPerm, mode_t newPerm) {
+void logChangePerms(struct logInfo *log, char *path, mode_t oldPerm,
+                    mode_t newPerm) {
     char perms[100];
     snprintf(perms, sizeof(perms), " : %o : %o", oldPerm, newPerm);
     strcat(path, perms);

@@ -1,10 +1,17 @@
+#ifndef LOGS_H_
+#define LOGS_H_
+
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <ctype.h>
 #define LOGFILE "LOG_FILENAME"
 
-struct logInfo
-{
+struct logInfo {
     bool hasLogFile;
     FILE *logfile;
     clock_t startTime;
@@ -48,5 +55,7 @@ void logSignalSent(struct logInfo *log, int signal, int pid);
 /**
  * Logs a change in permission
  */
-void logChangePerms(struct logInfo *log, char*path, mode_t oldPerm, mode_t newPerm);
+void logChangePerms(struct logInfo *log, char*path, mode_t oldPerm,
+                    mode_t newPerm);
 
+#endif  // LOGS_H_
