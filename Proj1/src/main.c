@@ -66,8 +66,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
 
 int main(int argc, char *argv[], char *envp[]) {
     if (argc < 3) {
-        fprintf(stderr, "Wrong number of arguments! ");
-        printf("Call the function with:\nxmod [OPTIONS] MODE FILE/DIR\n");
+        fprintf(stderr, "xmod: missing operand\n");
         exit(1);
     }
 
