@@ -1,6 +1,6 @@
+#include <sys/wait.h>
 #include "aux.h"
 #include "logs.h"
-#include <sys/wait.h>
 
 int main(int argc, char *argv[], char *envp[]) {
     if (argc < 3) {
@@ -18,12 +18,9 @@ int main(int argc, char *argv[], char *envp[]) {
     char modeString[10];
     parseMode(argv[argc - 2], &options, modeString);
     mode_t mode;
-    if (options.octal)
-    {
+    if (options.octal){
         mode = getOctalFromOctalString(modeString);
-    }
-    else
-    {
+    } else {
         mode = getOctalFromExplicitString(modeString, &options, argv[argc - 1]);
     }
 
