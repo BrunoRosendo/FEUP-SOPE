@@ -331,21 +331,20 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
                 switch (pid) {
                     case 0:
                         applyToPath(name, mode, options);
-                        // need to end the child process here, since otherwise it would print the files that are already being printed by the parent
+                        /*
+                        need to end the child process here, since otherwise it would
+                        print the files that are already being printed by the parent
+                        */
                         exit(0);
                         break;
                     default:;
-                        // printf("%s %s\n", "dir ", dirEntry->d_name);
-
                         int stat_loc;
                         wait(&stat_loc);  // Waits for the child process to end
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
-                // printf("fis %s\n", dirEntry->d_name);
                 changePermsWithOctal(name, mode);
             } else if (S_ISLNK(inode.st_mode)) {
-                //printf("lnk %s\n", dirEntry->d_name);
             }
         }
         if (dirPointer != NULL) {
@@ -359,7 +358,8 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             changePermsWithOctal(directoryPath, mode);
         } else {
-            fprintf(stderr, "xmod: cannot access 'path': No such file or directory\n");
+            fprintf(stderr,
+                "xmod: cannot access 'path': No such file or directory\n");
         }
     }
 }
