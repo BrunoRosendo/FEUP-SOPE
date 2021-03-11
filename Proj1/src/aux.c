@@ -303,7 +303,6 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         if (dirPointer == NULL) {
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
-
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode);
             } else {
@@ -312,21 +311,29 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             return;
         }
 
+        changePermsWithOctal(directoryPath, mode);
+
         while ((dirEntry = readdir(dirPointer)) != 0) {
             // sends formatted output to a string(name) / name
             // will be the absolute path to the next file
+
+            if (strcmp(dirEntry->d_name, ".") == 0 ||
+                strcmp(dirEntry->d_name, "..") == 0)
+                    continue;
+
             snprintf(name, sizeof(name), "%s/%s", directoryPath,
                 dirEntry->d_name);
 
             //  get info about the file/folder at the path name
-            lstat(name, &inode);
+            int statRet = lstat(name, &inode);
+            if (statRet == -1) {
+                fprintf(stderr,
+                "xmod: cannot access %s: Permission denied\n", name);
+                continue;
+            }
 
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
-                if (strcmp(dirEntry->d_name, ".") == 0 ||
-                    strcmp(dirEntry->d_name, "..") == 0)
-                    continue;
-
                 int pid = fork();
                 switch (pid) {
                     case 0:
@@ -351,7 +358,6 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         while ( (wpid = wait(&stat_loc)) > 0);
 
         if (dirPointer != NULL) {
-            changePermsWithOctal(directoryPath, mode);
             closedir(dirPointer);
         }
     } else {  // apply to the folder
