@@ -337,16 +337,19 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
                         */
                         exit(0);
                         break;
-                    default:;
-                        int stat_loc;
-                        wait(&stat_loc);  // Waits for the child process to end
+                    default:
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
                 changePermsWithOctal(name, mode);
-            } else if (S_ISLNK(inode.st_mode)) {
             }
         }
+
+        int stat_loc;
+        pid_t wpid;
+        // Waits for all child processes to end
+        while ( (wpid = wait(&stat_loc)) > 0);
+
         if (dirPointer != NULL) {
             changePermsWithOctal(directoryPath, mode);
             closedir(dirPointer);
