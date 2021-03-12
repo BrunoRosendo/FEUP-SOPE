@@ -284,3 +284,91 @@ void parseFlag(char *flag, Options *options) {
         }
     }
 }
+
+// assumes valid arguments
+void changePermsWithOctal(const char *pathname, mode_t mode) {
+    chmod(pathname, mode);
+}
+
+void applyToPath(char *directoryPath, mode_t mode, Options *options) {
+    if (options->recursive) {
+        // opens a directory. Returns a valid pointer if the successfully,
+        // NULL otherwise
+        DIR *dirPointer = opendir(directoryPath);
+
+        struct dirent *dirEntry;
+        struct stat inode;
+        char name[1000];
+
+        if (dirPointer == NULL) {
+            // get info about the file/folder at the path name
+            lstat(directoryPath, &inode);
+            if (S_ISREG(inode.st_mode)) {  // if it is a file
+                changePermsWithOctal(directoryPath, mode);
+            } else {
+                fprintf(stderr, "Error opening directory\n");
+            }
+            return;
+        }
+
+        changePermsWithOctal(directoryPath, mode);
+
+        while ((dirEntry = readdir(dirPointer)) != 0) {
+            // sends formatted output to a string(name) / name
+            // will be the absolute path to the next file
+
+            if (strcmp(dirEntry->d_name, ".") == 0 ||
+                strcmp(dirEntry->d_name, "..") == 0)
+                    continue;
+
+            snprintf(name, sizeof(name), "%s/%s", directoryPath,
+                dirEntry->d_name);
+
+            //  get info about the file/folder at the path name
+            int statRet = lstat(name, &inode);
+            if (statRet == -1) {
+                fprintf(stderr,
+                "xmod: cannot access %s: Permission denied\n", name);
+                continue;
+            }
+
+            // test the type of file
+            if (S_ISDIR(inode.st_mode)) {
+                int pid = fork();
+                switch (pid) {
+                    case 0:
+                        applyToPath(name, mode, options);
+                        /*
+                        need to end the child process here, since otherwise it would
+                        print the files that are already being printed by the parent
+                        */
+                        exit(0);
+                        break;
+                    default:
+                        break;
+                }
+            } else if (S_ISREG(inode.st_mode)) {
+                changePermsWithOctal(name, mode);
+            }
+        }
+
+        int stat_loc;
+        pid_t wpid;
+        // Waits for all child processes to end
+        while ( (wpid = wait(&stat_loc)) > 0);
+
+        if (dirPointer != NULL) {
+            closedir(dirPointer);
+        }
+    } else {  // apply to the folder
+        struct stat inode;
+        // get info about the file/folder at the path name
+        lstat(directoryPath, &inode);
+        if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
+            changePermsWithOctal(directoryPath, mode);
+        } else {
+            fprintf(stderr,
+                "xmod: cannot access 'path': No such file or directory\n");
+        }
+    }
+}
