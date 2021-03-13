@@ -1,4 +1,72 @@
 #include "aux.h"
+#include "logs.h"
+
+// VARIABLES NEEDED FOR LOGS AND SIGNAL HANDLING
+
+static int nftot = 0;
+static int nfmod = 0;
+static char canonicPath[256];
+extern logInfo logInformation;
+
+// FUNCTIONS FOR SIGNAL HANDLING
+
+void handleSigint(int signo) {
+    // logSignalReceived(&logInformation, signo);
+
+    pid_t pid = getpid();
+    printf("\n%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
+
+    // only one should do it ?
+    printf("Do you want to terminate the program? (y/n)\n");
+    char res = getchar();
+    if (res == 'n' || res == 'N') return;
+    exit(5);
+}
+
+void handleOtherSigs(int signo) {
+    logSignalReceived(&logInformation, signo);
+}
+
+void subscribeSignals(char newPath[]) {
+    realpath(newPath, canonicPath);  // for sigint handling
+    // Subscribe SIGINT handling
+    struct sigaction newInt, oldInt;
+    sigset_t smask;
+
+    if (sigemptyset(&smask) == -1) {
+        perror("sigset failed\n");
+        exit(5);
+    }
+    newInt.sa_handler = handleSigint;
+    newInt.sa_mask = smask;
+    newInt.sa_flags = 0;
+    if (sigaction(SIGINT, &newInt, &oldInt) == -1) {
+        perror("sigaction failed\n");
+        exit(5);
+    }
+
+    // Subscribe handling to other possible signals
+    for (int i = 1; i <= 31; ++i) {
+        if (i == SIGINT || i == SIGSTOP || i == SIGKILL)
+            continue;  // already handled or impossible to
+        struct sigaction new, old;
+        sigset_t mask;
+        if (sigemptyset(&mask) == -1) {
+            perror("sigset failed\n");
+            exit(5);
+        }
+        new.sa_handler = handleOtherSigs;
+        new.sa_mask = mask;
+        new.sa_flags = 0;
+        if (sigaction(i, &new, &old) == -1) {
+            perror("sigaction failed\n");
+            printf("%d\n", i);
+            exit(5);
+        }
+    }
+}
+
+// FUNCTIONS FOR PARSING AND CHANGING FILE PERMISSIONS
 
 void parseMode(const char *modeString, Options *options, char cutString[]) {
     // Check if it's in octal mode

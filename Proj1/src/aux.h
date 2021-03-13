@@ -24,8 +24,14 @@ typedef struct Options {
     permAction action;
 } Options;
 
-void parseMode(const char *modeString, Options *options, char cutString[]);
 
+void handleSigint(int signo);
+
+void handleOtherSigs(int signo);
+
+void subscribeSignals(char newPath[]);
+
+void parseMode(const char *modeString, Options *options, char cutString[]);
 
 /**
  * Generate octal from octal string

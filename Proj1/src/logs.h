@@ -11,16 +11,21 @@
 #include <ctype.h>
 #define LOGFILE "LOG_FILENAME"
 
-struct logInfo {
+typedef struct logInfo {
     bool hasLogFile;
     FILE *logfile;
     clock_t startTime;
-};
+} logInfo;
 
 /**
  * Sets the log file
  */
 void setLogFile(char **envp, struct logInfo *log);
+
+/**
+ * Closes the log file
+ */
+void closeLogFile(struct logInfo *log);
 
 /**
  * Logs a line
