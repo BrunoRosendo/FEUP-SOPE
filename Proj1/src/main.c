@@ -34,6 +34,5 @@ int main(int argc, char *argv[], char *envp[]) {
     applyToPath(argv[argc - 1], mode, &options);
 
     closeLogFile(&logInformation);
-    sleep(10);
     return 0;
 }

@@ -16,7 +16,7 @@ void handleSigint(int signo) {
     pid_t pid = getpid();
     printf("\n%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
 
-    // only one should do it ?
+    // only one should do it. DO IT LATER
     printf("Do you want to terminate the program? (y/n)\n");
     char res = getchar();
     if (res == 'n' || res == 'N') return;
@@ -368,11 +368,15 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         struct stat inode;
         char name[1000];
 
+        mode_t oldMode = getPermissionsFromFile(directoryPath);
+        nftot++;
+
         if (dirPointer == NULL) {
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode);
+                if (oldMode != mode) nfmod++;
             } else {
                 fprintf(stderr, "Error opening directory\n");
             }
@@ -380,6 +384,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         }
 
         changePermsWithOctal(directoryPath, mode);
+        if (oldMode != mode) nfmod++;
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
             // sends formatted output to a string(name) / name
@@ -416,7 +421,10 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
+                mode_t oldModeFile = getPermissionsFromFile(name);
+                nftot++;
                 changePermsWithOctal(name, mode);
+                if (mode != oldModeFile) nfmod++;
             }
         }
 
@@ -429,11 +437,14 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             closedir(dirPointer);
         }
     } else {  // apply to the folder
+        mode_t oldMode = getPermissionsFromFile(directoryPath);
         struct stat inode;
         // get info about the file/folder at the path name
         lstat(directoryPath, &inode);
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
+            nftot++;
             changePermsWithOctal(directoryPath, mode);
+            if (mode != oldMode) nfmod++;
         } else {
             fprintf(stderr,
                 "xmod: cannot access 'path': No such file or directory\n");
