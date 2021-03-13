@@ -68,6 +68,4 @@ void logSignalSent(int signal, int pid);
  */
 void logChangePerms(char*path, mode_t newPerm);
 
-
-
 #endif  // LOGS_H_

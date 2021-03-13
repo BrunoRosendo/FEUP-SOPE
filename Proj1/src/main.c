@@ -2,13 +2,13 @@
 #include "logs.h"
 
 int main(int argc, char *argv[], char *envp[]) {
+    setLogStart();
     subscribeSignals(argv[argc - 1]);
 
     if (argc < 3) {
         fprintf(stderr, "xmod: missing operand\n");
         exit(1);
     }
-    setLogStart();
     setLogFile(argc, argv, envp); //Start logging
     Options options;
     options.recursive = false;  // default

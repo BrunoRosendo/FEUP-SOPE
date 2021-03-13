@@ -3,16 +3,14 @@
 #include "logs.h"
 
 void setLogFile(int argc, char *argv[], char *envp[]) {
-
     for (char **env = envp; *env != 0; env++)     {
         char *thisEnv = *env;
         if (strstr(thisEnv, LOGFILE) != 0) {
-
             // Set up the log file
             const char delim[2] = "=";
             strtok(thisEnv, delim);
             char *filename = strtok(NULL, delim);
-            
+
             if (getenv(FIRST_PID)) {  // if the env variable already exists
                 logs.logfile = fopen(filename, "a");
             } else {
@@ -27,7 +25,7 @@ void setLogFile(int argc, char *argv[], char *envp[]) {
                 strcat(args, " ");
                 strcat(args, argv[i]);
             }
-            logs.args = (char*)malloc(sizeof(args));
+            logs.args = (char*) malloc(sizeof(args));
             strcpy(logs.args,args);
 
             // Start the timer for the logging
@@ -134,8 +132,6 @@ void logSignalSent(int signal, int pid) {
 }
 
 void logChangePerms(char *path, mode_t newPerm) {
-
-
     char *newpath = path;
     char perms[100];
     mode_t oldPerms = getPermissionsFromFile(path);
