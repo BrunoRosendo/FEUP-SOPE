@@ -24,8 +24,14 @@ typedef struct Options {
     permAction action;
 } Options;
 
-void parseMode(const char *modeString, Options *options, char cutString[]);
 
+void handleSigint(int signo);
+
+void handleOtherSigs(int signo);
+
+void subscribeSignals(char newPath[]);
+
+void parseMode(const char *modeString, Options *options, char cutString[]);
 
 /**
  * Generate octal from octal string
@@ -50,6 +56,7 @@ void parseFlag(char *flag, Options *options);
 
 void changePermsWithOctal(const char *pathname, mode_t mode);
 
-void applyToPath(char *directoryPath, mode_t mode, Options *options);
+void applyToPath(char *directoryPath, mode_t mode, Options *options,
+                  int argc, char **argv);
 
 #endif

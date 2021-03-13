@@ -9,18 +9,26 @@
 #include <unistd.h>
 #include <signal.h>
 #include <ctype.h>
+#include <math.h>
 #define LOGFILE "LOG_FILENAME"
+#define START_TIME "XMOD_START_TIME"
+#define FIRST_PID "XMOD_FIRST_PID"
 
-struct logInfo {
+typedef struct logInfo {
     bool hasLogFile;
     FILE *logfile;
-    clock_t startTime;
-};
+    long startTime;
+} logInfo;
 
 /**
  * Sets the log file
  */
 void setLogFile(char **envp, struct logInfo *log);
+
+/**
+ * Closes the log file
+ */
+void closeLogFile(struct logInfo *log);
 
 /**
  * Logs a line
@@ -57,5 +65,7 @@ void logSignalSent(struct logInfo *log, int signal, int pid);
  */
 void logChangePerms(struct logInfo *log, char*path, mode_t oldPerm,
                     mode_t newPerm);
+
+
 
 #endif  // LOGS_H_

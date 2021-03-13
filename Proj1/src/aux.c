@@ -1,4 +1,72 @@
 #include "aux.h"
+#include "logs.h"
+
+// VARIABLES NEEDED FOR LOGS AND SIGNAL HANDLING
+
+static int nftot = 0;
+static int nfmod = 0;
+static char canonicPath[256];
+extern logInfo logInformation;
+
+// FUNCTIONS FOR SIGNAL HANDLING
+
+void handleSigint(int signo) {
+    logSignalReceived(&logInformation, signo);
+
+    pid_t pid = getpid();
+    printf("\n%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
+
+    // only one should do it. DO IT LATER
+    printf("Do you want to terminate the program? (y/n)\n");
+    char res = getchar();
+    if (res == 'n' || res == 'N') return;
+    exit(5);
+}
+
+void handleOtherSigs(int signo) {
+    logSignalReceived(&logInformation, signo);
+}
+
+void subscribeSignals(char newPath[]) {
+    realpath(newPath, canonicPath);  // for sigint handling
+    // Subscribe SIGINT handling
+    struct sigaction newInt, oldInt;
+    sigset_t smask;
+
+    if (sigemptyset(&smask) == -1) {
+        perror("sigset failed\n");
+        exit(5);
+    }
+    newInt.sa_handler = handleSigint;
+    newInt.sa_mask = smask;
+    newInt.sa_flags = 0;
+    if (sigaction(SIGINT, &newInt, &oldInt) == -1) {
+        perror("sigaction failed\n");
+        exit(5);
+    }
+
+    // Subscribe handling to other possible signals
+    for (int i = 1; i <= 31; ++i) {
+        if (i == SIGINT || i == SIGSTOP || i == SIGKILL)
+            continue;  // already handled or impossible to
+        struct sigaction new, old;
+        sigset_t mask;
+        if (sigemptyset(&mask) == -1) {
+            perror("sigset failed\n");
+            exit(5);
+        }
+        new.sa_handler = handleOtherSigs;
+        new.sa_mask = mask;
+        new.sa_flags = 0;
+        if (sigaction(i, &new, &old) == -1) {
+            perror("sigaction failed\n");
+            printf("%d\n", i);
+            exit(5);
+        }
+    }
+}
+
+// FUNCTIONS FOR PARSING AND CHANGING FILE PERMISSIONS
 
 void parseMode(const char *modeString, Options *options, char cutString[]) {
     // Check if it's in octal mode
@@ -290,7 +358,8 @@ void changePermsWithOctal(const char *pathname, mode_t mode) {
     chmod(pathname, mode);
 }
 
-void applyToPath(char *directoryPath, mode_t mode, Options *options) {
+void applyToPath(char *directoryPath, mode_t mode, Options *options,
+                  int argc, char **argv) {
     if (options->recursive) {
         // opens a directory. Returns a valid pointer if the successfully,
         // NULL otherwise
@@ -300,11 +369,15 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         struct stat inode;
         char name[1000];
 
+        mode_t oldMode = getPermissionsFromFile(directoryPath);
+        nftot++;
+
         if (dirPointer == NULL) {
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode);
+                if (oldMode != mode) nfmod++;
             } else {
                 fprintf(stderr, "Error opening directory\n");
             }
@@ -312,6 +385,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
         }
 
         changePermsWithOctal(directoryPath, mode);
+        if (oldMode != mode) nfmod++;
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
             // sends formatted output to a string(name) / name
@@ -324,7 +398,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             snprintf(name, sizeof(name), "%s/%s", directoryPath,
                 dirEntry->d_name);
 
-            //  get info about the file/folder at the path name
+            // get info about the file/folder at the path name
             int statRet = lstat(name, &inode);
             if (statRet == -1) {
                 fprintf(stderr,
@@ -337,35 +411,38 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
                 int pid = fork();
                 switch (pid) {
                     case 0:
-                        applyToPath(name, mode, options);
-                        /*
-                        need to end the child process here, since otherwise it would
-                        print the files that are already being printed by the parent
-                        */
-                        exit(0);
+                        argv[argc-1] = name;
+
+                        execvp("./xmod", argv);
                         break;
                     default:
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
+                mode_t oldModeFile = getPermissionsFromFile(name);
+                nftot++;
                 changePermsWithOctal(name, mode);
+                if (mode != oldModeFile) nfmod++;
             }
         }
 
         int stat_loc;
         pid_t wpid;
         // Waits for all child processes to end
-        while ( (wpid = wait(&stat_loc)) > 0);
+        while ((wpid = wait(&stat_loc)) > 0) {}
 
         if (dirPointer != NULL) {
             closedir(dirPointer);
         }
     } else {  // apply to the folder
+        mode_t oldMode = getPermissionsFromFile(directoryPath);
         struct stat inode;
         // get info about the file/folder at the path name
         lstat(directoryPath, &inode);
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
+            nftot++;
             changePermsWithOctal(directoryPath, mode);
+            if (mode != oldMode) nfmod++;
         } else {
             fprintf(stderr,
                 "xmod: cannot access 'path': No such file or directory\n");
