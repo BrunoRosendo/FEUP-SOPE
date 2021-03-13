@@ -3,6 +3,7 @@
 
 // VARIABLES NEEDED FOR LOGS AND SIGNAL HANDLING
 
+static int waitingForSig = 1;
 static int nftot = 0;
 static int nfmod = 0;
 static char canonicPath[256];
@@ -14,17 +15,30 @@ void handleSigint(int signo) {
     logSignalReceived(&logInformation, signo);
 
     pid_t pid = getpid();
-    printf("\n%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
+    printf("%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
+    pid_t firstpid = atoi(getenv(FIRST_PID));
 
-    // only one should do it. DO IT LATER
-    printf("Do you want to terminate the program? (y/n)\n");
-    char res = getchar();
-    if (res == 'n' || res == 'N') return;
-    exit(5);
+    usleep(10000);
+    if (firstpid == getpid()) {
+        printf("Do you want to terminate the program? (y/n)\n");
+
+        char buffer[20];  // for multiple CTRL+C
+        scanf("%s", buffer);
+
+        if (toupper(buffer[0]) == 'Y')
+            killpg(firstpid, SIGKILL);
+        else
+            killpg(firstpid, SIGUSR1);
+
+    } else {
+        while (waitingForSig) {}  // wait for a decision
+        waitingForSig = 1;
+    }
 }
 
 void handleOtherSigs(int signo) {
     logSignalReceived(&logInformation, signo);
+    if (signo == SIGUSR1) waitingForSig = 0;
 }
 
 void subscribeSignals(char newPath[]) {
