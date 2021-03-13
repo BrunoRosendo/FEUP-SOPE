@@ -358,7 +358,7 @@ void changePermsWithOctal(const char *pathname, mode_t mode) {
     chmod(pathname, mode);
 }
 
-void applyToPath(char *directoryPath, mode_t mode, Options *options) {
+void applyToPath(char *directoryPath, mode_t mode, Options *options, int argc, char **argv) {
     if (options->recursive) {
         // opens a directory. Returns a valid pointer if the successfully,
         // NULL otherwise
@@ -397,7 +397,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
             snprintf(name, sizeof(name), "%s/%s", directoryPath,
                 dirEntry->d_name);
 
-            //  get info about the file/folder at the path name
+            // get info about the file/folder at the path name
             int statRet = lstat(name, &inode);
             if (statRet == -1) {
                 fprintf(stderr,
@@ -410,12 +410,9 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options) {
                 int pid = fork();
                 switch (pid) {
                     case 0:
-                        applyToPath(name, mode, options);
-                        /*
-                        need to end the child process here, since otherwise it would
-                        print the files that are already being printed by the parent
-                        */
-                        exit(0);
+                        argv[argc-1] = name;
+
+                        execvp("./xmod", argv);
                         break;
                     default:
                         break;

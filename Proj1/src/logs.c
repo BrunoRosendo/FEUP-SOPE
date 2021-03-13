@@ -22,7 +22,30 @@ void closeLogFile(struct logInfo *log) {
 }
 
 void setLogStart(struct logInfo *log) {
-    log->startTime = clock();
+    if(getenv(FIRST_PID)){      // if the env variable already exists
+        log->startTime = atol(getenv(START_TIME));
+    } else {
+        struct timespec time;
+        clock_gettime(CLOCK_REALTIME, &time);
+        log->startTime = time.tv_sec*1000 + time.tv_nsec/(pow(10, 6));
+
+        char pidString[10];
+        char startTimeString[50];
+        snprintf(pidString, sizeof(pidString), "%d", getpid());
+        snprintf(startTimeString, sizeof(startTimeString) , "%ld", log->startTime);
+
+        int stat = setenv(START_TIME, startTimeString, 1);
+        if(stat == -1){
+            fprintf(stderr, "Error setting environment variable\n");
+            exit(1);
+        }
+        
+        stat = setenv(FIRST_PID, pidString, 1);
+        if(stat == -1){
+            fprintf(stderr, "Error setting environment variable\n");
+            exit(1);
+        }
+    }
 }
 
 void logAction(struct logInfo *log, char *action, char *info) {
@@ -53,6 +76,9 @@ void logExit(struct logInfo *log, int exitStatus) {
     char exit[20];
     snprintf(exit, sizeof(exit), "%d", exitStatus);
     logAction(log, "PROC_EXIT", exit);
+
+    unsetenv(START_TIME);
+    unsetenv(FIRST_PID);
 }
 
 void logSignalReceived(struct logInfo *log, int signal) {

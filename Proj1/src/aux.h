@@ -56,6 +56,6 @@ void parseFlag(char *flag, Options *options);
 
 void changePermsWithOctal(const char *pathname, mode_t mode);
 
-void applyToPath(char *directoryPath, mode_t mode, Options *options);
+void applyToPath(char *directoryPath, mode_t mode, Options *options, int argc, char **argv);
 
 #endif
