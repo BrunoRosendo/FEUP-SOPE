@@ -22,7 +22,7 @@ void closeLogFile(struct logInfo *log) {
 }
 
 void setLogStart(struct logInfo *log) {
-    if(getenv(FIRST_PID)){      // if the env variable already exists
+    if (getenv(FIRST_PID)) {  // if the env variable already exists
         log->startTime = atol(getenv(START_TIME));
     } else {
         struct timespec time;
@@ -32,16 +32,17 @@ void setLogStart(struct logInfo *log) {
         char pidString[10];
         char startTimeString[50];
         snprintf(pidString, sizeof(pidString), "%d", getpid());
-        snprintf(startTimeString, sizeof(startTimeString) , "%ld", log->startTime);
+        snprintf(startTimeString, sizeof(startTimeString) , "%ld",
+                 log->startTime);
 
         int stat = setenv(START_TIME, startTimeString, 1);
-        if(stat == -1){
+        if (stat == -1) {
             fprintf(stderr, "Error setting environment variable\n");
             exit(1);
         }
-        
+
         stat = setenv(FIRST_PID, pidString, 1);
-        if(stat == -1){
+        if (stat == -1) {
             fprintf(stderr, "Error setting environment variable\n");
             exit(1);
         }

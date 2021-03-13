@@ -358,7 +358,8 @@ void changePermsWithOctal(const char *pathname, mode_t mode) {
     chmod(pathname, mode);
 }
 
-void applyToPath(char *directoryPath, mode_t mode, Options *options, int argc, char **argv) {
+void applyToPath(char *directoryPath, mode_t mode, Options *options,
+                  int argc, char **argv) {
     if (options->recursive) {
         // opens a directory. Returns a valid pointer if the successfully,
         // NULL otherwise
@@ -428,7 +429,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options, int argc, c
         int stat_loc;
         pid_t wpid;
         // Waits for all child processes to end
-        while ( (wpid = wait(&stat_loc)) > 0);
+        while ((wpid = wait(&stat_loc)) > 0) {}
 
         if (dirPointer != NULL) {
             closedir(dirPointer);

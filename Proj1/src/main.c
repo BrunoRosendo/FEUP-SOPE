@@ -1,4 +1,3 @@
-#include <sys/wait.h>
 #include "aux.h"
 #include "logs.h"
 
@@ -24,11 +23,11 @@ int main(int argc, char *argv[], char *envp[]) {
 
     char modeString[10];
     char* clonedArgs[20];
-    for(int i = 0; i < argc; i++){
-        clonedArgs[i] = (char *)malloc(100 * sizeof(char));
+    for (int i = 0; i < argc; i++) {
+        clonedArgs[i] = (char *) malloc(100 * sizeof(char));
         memcpy(clonedArgs[i], argv[i], 100 * sizeof(char));
     }
-    
+
     parseMode(argv[argc-2], &options, modeString);
     mode_t mode;
     if (options.octal) {
