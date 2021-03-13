@@ -60,13 +60,14 @@ void logSignalReceived(struct logInfo *log, int signal) {
     if (!sigName) {
         return;
     }
+    char *oldPointer = sigName;
     while (*sigName) {
         *sigName = toupper(*sigName);
         sigName++;
     }
 
     logAction(log, "SIGNAL_RECV", sigName);
-    free(sigName);
+    free(oldPointer);
 }
 
 void logSignalSent(struct logInfo *log, int signal, int pid) {
@@ -74,6 +75,7 @@ void logSignalSent(struct logInfo *log, int signal, int pid) {
     if (!sigName) {
         return;
     }
+    char *oldPointer = sigName;
     while (*sigName) {
         *sigName = toupper(*sigName);
         sigName++;
@@ -82,7 +84,7 @@ void logSignalSent(struct logInfo *log, int signal, int pid) {
     char sigNamePid[100];
     snprintf(sigNamePid, sizeof(sigNamePid), "%s : %d", sigName, pid);
     logAction(log, "SIGNAL_SENT", sigNamePid);
-    free(sigName);
+    free(oldPointer);
 }
 
 void logChangePerms(struct logInfo *log, char *path, mode_t oldPerm,

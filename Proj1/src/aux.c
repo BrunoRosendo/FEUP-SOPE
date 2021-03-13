@@ -11,7 +11,7 @@ extern logInfo logInformation;
 // FUNCTIONS FOR SIGNAL HANDLING
 
 void handleSigint(int signo) {
-    // logSignalReceived(&logInformation, signo);
+    logSignalReceived(&logInformation, signo);
 
     pid_t pid = getpid();
     printf("\n%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
