@@ -78,10 +78,11 @@ void logAction(char *action, char *info) {
     }
     pid_t pid = getpid();
     clock_t now = clock();
+    long int time = (now - logs.startTime) * 1000 / CLOCKS_PER_SEC;
     fprintf(
         logs.logfile,
         "%ld ; %d ; %s ; %s\n",
-        now - logs.startTime,
+        time,
         pid,
         action,
         info);
