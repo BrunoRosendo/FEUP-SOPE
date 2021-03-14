@@ -40,6 +40,16 @@ void parseMode(char *modeString, Options *options, char cutString[]);
 mode_t getOctalFromOctalString(char *modeString);
 
 /**
+ * Generate explicit string from octal
+*/
+void getExcplicitStringFromOctal(char *permissionInString, mode_t octalP);
+
+/**
+ * Handles changed permissions
+*/
+void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode, Options *options);
+
+/**
  * Reads the permissions from a file
  * @return octal
  */

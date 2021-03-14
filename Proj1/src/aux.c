@@ -257,6 +257,50 @@ mode_t getOctalFromOctalString(char *modeString) {
     return mode;
 }
 
+void getExcplicitStringFromOctal(char *permissionInString, mode_t octalP) {
+    strcpy(permissionInString, "---------");
+    if (octalP & S_IRUSR)
+        permissionInString[0]= 'r';
+    if (octalP & S_IWUSR)
+        permissionInString[1]= 'w';
+    if (octalP & S_IXUSR)
+        permissionInString[2]= 'x';
+    if (octalP & S_IRGRP)
+        permissionInString[3]= 'r';
+    if (octalP & S_IWGRP)
+        permissionInString[4]= 'w';
+    if (octalP & S_IXGRP)
+        permissionInString[5]= 'x';
+    if (octalP & S_IROTH)
+        permissionInString[6]= 'r';
+    if (octalP & S_IWOTH)
+        permissionInString[7]= 'w';
+    if (octalP & S_IXOTH)
+        permissionInString[8]= 'x';
+}
+
+
+void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode,
+                              Options *options) {
+    if (mode != oldMode) {
+        nfmod++;
+        if (options->output == verbose || options->output == onChange) {
+            char explicitStringMode[10];
+            char explicitStringModeOld[10];
+            getExcplicitStringFromOctal(explicitStringMode, mode);
+            getExcplicitStringFromOctal(explicitStringModeOld, oldMode);
+            printf("mode of %s changed from 0%o (%s) to 0%o (%s) \n",
+                filePath, oldMode, explicitStringModeOld,
+                mode, explicitStringMode);
+        }
+    } else if (options->output == verbose) {
+            char explicitStringMode[10];
+            getExcplicitStringFromOctal(explicitStringMode, mode);
+            printf("mode of %s retained as 0%o (%s) \n",
+                    filePath, mode, explicitStringMode);
+        }
+}
+
 // Reads permission from a file and returns an octal
 mode_t getPermissionsFromFile(char* fileName) {
     struct stat fileStat;
@@ -417,34 +461,15 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode, oldMode);
-                if (oldMode != mode) {
-                    nfmod++;
-                    if (options->output == verbose ||
-                    options->output == onChange) {
-                        printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
-                                directoryPath, oldMode, mode);
-                    }
-                } else if (options->output == verbose) {
-                    printf("mode of %s retained as 0%o (permstring)\n",
-                            directoryPath, mode);
-                }
+                handleChangedPermissions(directoryPath, mode, oldMode, options);
             } else {
-                fprintf(stderr, "Error opening directory\n");
+                fprintf(stderr, "Error opening directory \n");
             }
             return;
         }
 
         changePermsWithOctal(directoryPath, mode, oldMode);
-        if (oldMode != mode) {
-            nfmod++;
-            if (options->output == verbose || options->output == onChange) {
-                printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
-                        directoryPath, oldMode, mode);
-            }
-        } else if (options->output == verbose) {
-            printf("mode of %s retained as 0%o (permstring)\n",
-                    directoryPath, mode);
-        }
+        handleChangedPermissions(directoryPath, mode, oldMode, options);
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
             // sends formatted output to a string(name) / name
@@ -461,7 +486,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             int statRet = lstat(name, &inode);
             if (statRet == -1) {
                 fprintf(stderr,
-                "xmod: cannot access %s: Permission denied\n", name);
+                "xmod: cannot access %s: Permission denied \n", name);
                 continue;
             }
 
@@ -478,20 +503,10 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
-                mode_t oldModeFile = getPermissionsFromFile(name);
+                mode_t oldMode = getPermissionsFromFile(name);
                 nftot++;
-                changePermsWithOctal(name, mode, oldModeFile);
-                if (mode != oldModeFile) {
-                    nfmod++;
-                    if (options->output == verbose ||
-                    options->output == onChange) {
-                        printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
-                            name, oldModeFile, mode);
-                    }
-                } else if (options->output == verbose) {
-                    printf("mode of %s retained as 0%o (permstring)\n",
-                            name, mode);
-                }
+                changePermsWithOctal(name, mode, oldMode);
+                handleChangedPermissions(name, mode, oldMode, options);
             }
         }
 
@@ -511,16 +526,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             nftot++;
             changePermsWithOctal(directoryPath, mode, oldMode);
-            if (mode != oldMode) {
-                nfmod++;
-                if (options->output == verbose || options->output == onChange) {
-                    printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
-                            directoryPath, oldMode, mode);
-                }
-            } else if (options->output == verbose) {
-                printf("mode of %s retained as 0%o (permstring)\n",
-                    directoryPath, mode);
-            }
+            handleChangedPermissions(directoryPath, mode, oldMode, options);
         } else {
             fprintf(stderr,
                 "xmod: cannot access 'path': No such file or directory\n");
