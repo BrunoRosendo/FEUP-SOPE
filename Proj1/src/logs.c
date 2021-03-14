@@ -4,10 +4,12 @@ void setLogFile() {
     char *fileName = getenv(LOGFILE);
     if (fileName) {
         // if the env variable already exists
-        if (atoi(getenv(FIRST_PID)) != getpid())
+        if (atoi(getenv(FIRST_PID)) != getpid()) {
             logs.logfile = fopen(fileName, "a");
-        else
-            logs.logfile = fopen(fileName, "w");
+        } else {
+            logs.logfile = fopen(fileName, "w");  // erase content
+            logs.logfile = freopen(fileName, "a", logs.logfile);
+        }
 
         logs.hasLogFile = true;
         return;
@@ -54,8 +56,10 @@ void logAction(char *action, char *info) {
         return;
     }
     pid_t pid = getpid();
-    clock_t now = clock();
-    long time = (now - logs.startTime) * 1000 / CLOCKS_PER_SEC;
+    struct timespec timeStruct;
+    clock_gettime(CLOCK_REALTIME, &timeStruct);
+    long now = timeStruct.tv_sec * 1000 + timeStruct.tv_nsec / (pow(10, 6));
+    long time = now - logs.startTime;
     fprintf(
         logs.logfile,
         "%ld ; %d ; %s ; %s\n",
@@ -84,35 +88,15 @@ void logExit(int exitStatus) {
 }
 
 void logSignalReceived(int signal) {
-    char *sigName = strdup(sys_siglist[signal]);
-    if (!sigName) {
-        return;
-    }
-    char *oldPointer = sigName;
-    while (*sigName) {
-        *sigName = toupper(*sigName);
-        sigName++;
-    }
-
-    logAction("SIGNAL_RECV", sigName);
-    free(oldPointer);
+    logAction("SIGNAL_RECV", strsignal(signal));
 }
 
 void logSignalSent(int signal, int pid) {
-    char *sigName = strdup(sys_siglist[signal]);
-    if (!sigName) {
-        return;
-    }
-    char *oldPointer = sigName;
-    while (*sigName) {
-        *sigName = toupper(*sigName);
-        sigName++;
-    }
+    char *sigName = strsignal(signal);
 
     char sigNamePid[100];
     snprintf(sigNamePid, sizeof(sigNamePid), "%s : %d", sigName, pid);
     logAction("SIGNAL_SENT", sigNamePid);
-    free(oldPointer);
 }
 
 void logChangePerms(char *path, mode_t newPerm, mode_t oldPerms) {

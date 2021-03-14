@@ -447,14 +447,14 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
 
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
+                argv[argc-1] = name;
                 int pid = fork();
                 switch (pid) {
                     case 0:
-                        argv[argc-1] = name;
-                        logProcessCreation(argc, argv);
                         execvp("./xmod", argv);
                         break;
                     default:
+                        logProcessCreation(argc, argv);
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {

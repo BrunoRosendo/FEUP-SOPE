@@ -37,8 +37,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
     applyToPath(argv[argc - 1], mode, &options, argc, clonedArgs);
 
-    closeLogFile(&logs);
-
     logExit(0);  // Register logging exit from the process
+    closeLogFile(&logs);
     return 0;
 }
