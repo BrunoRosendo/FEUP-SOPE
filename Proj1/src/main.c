@@ -26,6 +26,7 @@ int main(int argc, char *argv[], char *envp[]) {
         clonedArgs[i] = (char *) malloc(100 * sizeof(char));
         memcpy(clonedArgs[i], argv[i], 100 * sizeof(char));
     }
+    clonedArgs[argc] = NULL;    // Array needs to end with NULL
 
     parseMode(argv[argc-2], &options, modeString);
     mode_t mode;
@@ -37,7 +38,10 @@ int main(int argc, char *argv[], char *envp[]) {
 
     applyToPath(argv[argc - 1], mode, &options, argc, clonedArgs);
 
+    for (int i = 0; i < argc; i++)
+        free(clonedArgs[i]);
+
     logExit(0);  // Register logging exit from the process
-    closeLogFile(&logs);
+    closeLogFile();
     return 0;
 }

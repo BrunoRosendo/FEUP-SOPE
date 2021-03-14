@@ -258,7 +258,8 @@ mode_t getOctalFromOctalString(char *modeString) {
 }
 
 void getExcplicitStringFromOctal(char *permissionInString, mode_t octalP) {
-    strcpy(permissionInString, "---------");
+    snprintf(permissionInString, sizeof("---------"), "---------");
+
     if (octalP & S_IRUSR)
         permissionInString[0]= 'r';
     if (octalP & S_IWUSR)
@@ -281,7 +282,7 @@ void getExcplicitStringFromOctal(char *permissionInString, mode_t octalP) {
 
 
 void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode,
-                              Options *options) {
+                                Options *options) {
     if (mode != oldMode) {
         nfmod++;
         if (options->output == verbose || options->output == onChange) {
@@ -294,11 +295,11 @@ void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode,
                 mode, explicitStringMode);
         }
     } else if (options->output == verbose) {
-            char explicitStringMode[10];
-            getExcplicitStringFromOctal(explicitStringMode, mode);
-            printf("mode of %s retained as 0%o (%s) \n",
-                    filePath, mode, explicitStringMode);
-        }
+        char explicitStringMode[10];
+        getExcplicitStringFromOctal(explicitStringMode, mode);
+        printf("mode of %s retained as 0%o (%s) \n",
+                filePath, mode, explicitStringMode);
+     }
 }
 
 // Reads permission from a file and returns an octal

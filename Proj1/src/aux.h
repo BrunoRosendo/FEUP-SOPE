@@ -45,9 +45,10 @@ mode_t getOctalFromOctalString(char *modeString);
 void getExcplicitStringFromOctal(char *permissionInString, mode_t octalP);
 
 /**
- * Handles changed permissions
+ * Handles permission changes
 */
-void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode, Options *options);
+void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode,
+                                Options *options);
 
 /**
  * Reads the permissions from a file
