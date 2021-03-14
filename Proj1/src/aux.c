@@ -411,12 +411,23 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         mode_t oldMode = getPermissionsFromFile(directoryPath);
         nftot++;
 
+
         if (dirPointer == NULL) {
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
                 changePermsWithOctal(directoryPath, mode, oldMode);
-                if (oldMode != mode) nfmod++;
+                if (oldMode != mode) {
+                    nfmod++;
+                    if (options->output == verbose ||
+                    options->output == onChange) {
+                        printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
+                                directoryPath, oldMode, mode);
+                    }
+                } else if (options->output == verbose) {
+                    printf("mode of %s retained as 0%o (permstring)\n",
+                            directoryPath, mode);
+                }
             } else {
                 fprintf(stderr, "Error opening directory\n");
             }
@@ -424,7 +435,16 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         }
 
         changePermsWithOctal(directoryPath, mode, oldMode);
-        if (oldMode != mode) nfmod++;
+        if (oldMode != mode) {
+            nfmod++;
+            if (options->output == verbose || options->output == onChange) {
+                printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
+                        directoryPath, oldMode, mode);
+            }
+        } else if (options->output == verbose) {
+            printf("mode of %s retained as 0%o (permstring)\n",
+                    directoryPath, mode);
+        }
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
             // sends formatted output to a string(name) / name
@@ -461,7 +481,17 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
                 mode_t oldModeFile = getPermissionsFromFile(name);
                 nftot++;
                 changePermsWithOctal(name, mode, oldModeFile);
-                if (mode != oldModeFile) nfmod++;
+                if (mode != oldModeFile) {
+                    nfmod++;
+                    if (options->output == verbose ||
+                    options->output == onChange) {
+                        printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
+                            name, oldModeFile, mode);
+                    }
+                } else if (options->output == verbose) {
+                    printf("mode of %s retained as 0%o (permstring)\n",
+                            name, mode);
+                }
             }
         }
 
@@ -481,7 +511,16 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             nftot++;
             changePermsWithOctal(directoryPath, mode, oldMode);
-            if (mode != oldMode) nfmod++;
+            if (mode != oldMode) {
+                nfmod++;
+                if (options->output == verbose || options->output == onChange) {
+                    printf("mode of %s changed from 0%o (permstring) to 0%o (permstring)\n",
+                            directoryPath, oldMode, mode);
+                }
+            } else if (options->output == verbose) {
+                printf("mode of %s retained as 0%o (permstring)\n",
+                    directoryPath, mode);
+            }
         } else {
             fprintf(stderr,
                 "xmod: cannot access 'path': No such file or directory\n");
