@@ -24,10 +24,13 @@ void handleSigint(int signo) {
         char buffer[20];  // for multiple CTRL+C
         scanf("%s", buffer);
 
-        if (toupper(buffer[0]) == 'Y')
+        if (toupper(buffer[0]) == 'Y') {
+            logSignalSent(SIGUSR2, firstpid);
             killpg(firstpid, SIGUSR2);
-        else
+        } else {
+            logSignalSent(SIGUSR1, firstpid);
             killpg(firstpid, SIGUSR1);
+        }
 
     } else {
         while (waitingForSig) {}  // wait for a decision
@@ -38,7 +41,10 @@ void handleSigint(int signo) {
 void handleOtherSigs(int signo) {
     logSignalReceived(signo);
     if (signo == SIGUSR1) waitingForSig = 0;
-    if (signo == SIGUSR2) exit(5);
+    if (signo == SIGUSR2) {
+        logExit(6);
+        exit(6);
+    }
 }
 
 void subscribeSignals(char newPath[]) {
@@ -49,6 +55,7 @@ void subscribeSignals(char newPath[]) {
 
     if (sigemptyset(&smask) == -1) {
         perror("sigset failed\n");
+        logExit(5);
         exit(5);
     }
     newInt.sa_handler = handleSigint;
@@ -56,6 +63,7 @@ void subscribeSignals(char newPath[]) {
     newInt.sa_flags = 0;
     if (sigaction(SIGINT, &newInt, &oldInt) == -1) {
         perror("sigaction failed\n");
+        logExit(5);
         exit(5);
     }
 
@@ -67,6 +75,7 @@ void subscribeSignals(char newPath[]) {
         sigset_t mask;
         if (sigemptyset(&mask) == -1) {
             perror("sigset failed\n");
+            logExit(5);
             exit(5);
         }
         new.sa_handler = handleOtherSigs;
@@ -74,7 +83,7 @@ void subscribeSignals(char newPath[]) {
         new.sa_flags = 0;
         if (sigaction(i, &new, &old) == -1) {
             perror("sigaction failed\n");
-            printf("%d\n", i);
+            logExit(5);
             exit(5);
         }
     }
@@ -88,6 +97,7 @@ void parseMode(char *modeString, Options *options, char cutString[]) {
         for (int i = 0; modeString[i] != '\0'; ++i)
             if (modeString[i] < '0' || modeString[i] > '7') {
                 fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+                logExit(2);
                 exit(2);
             }
 
@@ -119,6 +129,7 @@ void parseMode(char *modeString, Options *options, char cutString[]) {
                 break;
             default:
                 fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+                logExit(3);
                 exit(3);
         }
     }
@@ -135,6 +146,7 @@ void parseMode(char *modeString, Options *options, char cutString[]) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     i++;
@@ -177,6 +189,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     ++i;
@@ -207,6 +220,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     ++i;
@@ -237,6 +251,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
         }
     return mode;
@@ -248,6 +263,7 @@ mode_t getPermissionsFromFile(char* fileName) {
     if (stat(fileName, &fileStat) < 0) {
         fprintf(stderr, "xmod: cannot access '%s': No such file or directory\n",
                 fileName);
+        logExit(4);
         exit(4);
     }
 
@@ -368,6 +384,7 @@ void parseFlag(char *flag, Options *options) {
                 break;
             default:
                 fprintf(stderr, "xmod: invalid options -- '%c'\n", flag[i]);
+                logExit(3);
                 exit(3);
         }
     }
@@ -375,7 +392,8 @@ void parseFlag(char *flag, Options *options) {
 
 // assumes valid arguments
 void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode) {
-    logChangePerms(pathname, mode, oldMode);
+    if (mode != oldMode)
+        logChangePerms(pathname, mode, oldMode);
     chmod(pathname, mode);
 }
 
@@ -430,11 +448,10 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
                 int pid = fork();
-                logProcessCreation();
                 switch (pid) {
                     case 0:
                         argv[argc-1] = name;
-
+                        logProcessCreation(argc, argv);
                         execvp("./xmod", argv);
                         break;
                     default:

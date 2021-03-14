@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <math.h>
+#include <sys/stat.h>
 #define LOGFILE "LOG_FILENAME"
 #define START_TIME "XMOD_START_TIME"
 #define FIRST_PID "XMOD_FIRST_PID"
@@ -18,7 +19,6 @@ typedef struct logInfo {
     bool hasLogFile;
     FILE *logfile;
     long startTime;
-    char * args;
 } logInfo;
 
 logInfo logs;
@@ -26,7 +26,7 @@ logInfo logs;
 /**
  * Sets the log file
  */
-void setLogFile(int argc, char *argv[], char *envp[]);
+void setLogFile();
 
 /**
  * Sets the log start time

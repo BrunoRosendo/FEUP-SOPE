@@ -1,36 +1,16 @@
-#include <sys/stat.h>
 #include "logs.h"
 
-void setLogFile(int argc, char *argv[], char *envp[]) {
-    for (char **env = envp; *env != 0; env++)     {
-        char *thisEnv = *env;
-        if (strstr(thisEnv, LOGFILE) != 0) {
-            // Set up the log file
-            const char delim[2] = "=";
-            strtok(thisEnv, delim);
-            char *filename = strtok(NULL, delim);
+void setLogFile() {
+    char *fileName = getenv(LOGFILE);
+    if (fileName) {
+        // if the env variable already exists
+        if (atoi(getenv(FIRST_PID)) != getpid())
+            logs.logfile = fopen(fileName, "a");
+        else
+            logs.logfile = fopen(fileName, "w");
 
-            // if the env variable already exists
-            if (atoi(getenv(FIRST_PID)) != getpid()) {
-                logs.logfile = fopen(filename, "a");
-            } else {
-                logs.logfile = fopen(filename, "w");
-            }
-            logs.hasLogFile = true;
-
-            // Save the arguments
-            char args[2048];
-            snprintf(args, sizeof(args), "%s", argv[0]);
-            for (int i = 1; i < argc; i++) {
-                snprintf(args + strlen(args), sizeof(args), " %s", argv[i]);
-            }
-            logs.args = (char*) malloc(sizeof(args));
-            snprintf(logs.args, sizeof(args), "%s", args);
-
-            // Start the timer for the logging
-            setLogStart();
-            return;
-        }
+        logs.hasLogFile = true;
+        return;
     }
     logs.hasLogFile = false;
 }
@@ -85,8 +65,13 @@ void logAction(char *action, char *info) {
         info);
 }
 
-void logProcessCreation() {
-    logAction("PROC_CREAT", logs.args);
+void logProcessCreation(int argc, char* argv[]) {
+    char args[2048];
+    snprintf(args, sizeof(args), "%s", argv[0]);
+    for (int i = 1; i < argc; i++) {
+        snprintf(args + strlen(args), sizeof(args), " %s", argv[i]);
+    }
+    logAction("PROC_CREAT", args);
 }
 
 void logExit(int exitStatus) {
