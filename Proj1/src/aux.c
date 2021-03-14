@@ -1,5 +1,5 @@
-#include "aux.h"
 #include "logs.h"
+#include "aux.h"
 
 // VARIABLES NEEDED FOR LOGS AND SIGNAL HANDLING
 
@@ -7,12 +7,11 @@ static int waitingForSig = 1;
 static int nftot = 0;
 static int nfmod = 0;
 static char canonicPath[256];
-extern logInfo logInformation;
 
 // FUNCTIONS FOR SIGNAL HANDLING
 
 void handleSigint(int signo) {
-    logSignalReceived(&logInformation, signo);
+    logSignalReceived(signo);
 
     pid_t pid = getpid();
     printf("%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
@@ -37,7 +36,7 @@ void handleSigint(int signo) {
 }
 
 void handleOtherSigs(int signo) {
-    logSignalReceived(&logInformation, signo);
+    logSignalReceived(signo);
     if (signo == SIGUSR1) waitingForSig = 0;
 }
 
@@ -369,6 +368,7 @@ void parseFlag(char *flag, Options *options) {
 
 // assumes valid arguments
 void changePermsWithOctal(const char *pathname, mode_t mode) {
+    logChangePerms(pathname, mode);
     chmod(pathname, mode);
 }
 
@@ -423,6 +423,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
                 int pid = fork();
+                logProcessCreation();
                 switch (pid) {
                     case 0:
                         argv[argc-1] = name;
