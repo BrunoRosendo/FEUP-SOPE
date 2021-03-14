@@ -40,6 +40,5 @@ int main(int argc, char *argv[], char *envp[]) {
 
     closeLogFile(&logInformation);
 
-    while (1) {sleep(10);}
     return 0;
 }
