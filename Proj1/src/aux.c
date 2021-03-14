@@ -288,6 +288,9 @@ mode_t getPermissionsFromFile(char* fileName) {
 mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName) {
     mode_t mode = 0;
+    mode_t oldMode = getPermissionsFromFile(fileName);
+    if (options->action == erase || options->action == add) mode = oldMode;
+
     for (int i = 0; i < 3; ++i) {  // other chars get ignored
         if (options->action == substitute || options->action == add) {
             switch (options->user) {
@@ -295,16 +298,22 @@ mode_t getOctalFromExplicitString(char *modeString, Options *options,
                     if (modeString[i] == 'r') mode |= 0400;
                     if (modeString[i] == 'w') mode |= 0200;
                     if (modeString[i] == 'x') mode |= 0100;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0077);
                     break;
                 case group:
                     if (modeString[i] == 'r') mode |= 0040;
                     if (modeString[i] == 'w') mode |= 0020;
                     if (modeString[i] == 'x') mode |= 0010;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0707);
                     break;
                 case others:
                     if (modeString[i] == 'r') mode |= 0004;
                     if (modeString[i] == 'w') mode |= 0002;
                     if (modeString[i] == 'x') mode |= 0001;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0770);
                     break;
                 case all:
                     if (modeString[i] == 'r') mode |= 0444;
@@ -312,10 +321,7 @@ mode_t getOctalFromExplicitString(char *modeString, Options *options,
                     if (modeString[i] == 'x') mode |= 0111;
                     break;
             }
-            if (options->action == add)
-                mode |= getPermissionsFromFile(fileName);
         } else {  // Erase
-            mode = getPermissionsFromFile(fileName);
             switch (options->user) {
                 case owner:
                     if (modeString[i] == 'r') mode &= 0377;
