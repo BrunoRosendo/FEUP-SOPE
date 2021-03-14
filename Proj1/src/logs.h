@@ -22,6 +22,7 @@ typedef struct logInfo {
 } logInfo;
 
 logInfo logs;
+extern char *canonicPath;
 
 /**
  * Sets the log file

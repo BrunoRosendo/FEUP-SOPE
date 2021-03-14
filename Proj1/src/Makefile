@@ -1,7 +1,7 @@
 CFLAGS = -Wall
 
 xmod: main.o aux.o logs.o
-	gcc -o xmod main.o aux.o logs.o
+	gcc -o xmod main.o aux.o logs.o -lm
 
 main.o: main.c aux.h logs.h
 	gcc $(CFLAGS) -c main.c
