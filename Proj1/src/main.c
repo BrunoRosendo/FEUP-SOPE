@@ -1,19 +1,18 @@
 #include "aux.h"
 #include "logs.h"
 
-logInfo logInformation;
-
 int main(int argc, char *argv[], char *envp[]) {
+    setLogStart();  // Start the timer
     subscribeSignals(argv[argc - 1]);
-    setLogStart(&logInformation);
 
     if (argc < 3) {
         fprintf(stderr, "xmod: missing operand\n");
+        logExit(1);
         exit(1);
     }
 
-    setLogFile(envp, &logInformation);
-
+    setLogFile(argc, argv);  // Start logging
+    logProcessCreation(argc, argv);
     Options options;
     options.recursive = false;  // default
     options.output = simple;
@@ -38,7 +37,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
     applyToPath(argv[argc - 1], mode, &options, argc, clonedArgs);
 
-    closeLogFile(&logInformation);
-
+    logExit(0);  // Register logging exit from the process
+    closeLogFile(&logs);
     return 0;
 }

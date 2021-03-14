@@ -1,39 +1,35 @@
 #include "logs.h"
 
-void setLogFile(char **envp, struct logInfo *log) {
-    for (char **env = envp; *env != 0; env++)     {
-        char *thisEnv = *env;
-        if (strstr(thisEnv, LOGFILE) != 0) {
-            const char delim[2] = "=";
-            strtok(thisEnv, delim);
-            char *filename = strtok(NULL, delim);
-            log->logfile = fopen(filename, "w");
-            log->hasLogFile = true;
-            return;
+void setLogFile() {
+    char *fileName = getenv(LOGFILE);
+    if (fileName) {
+        // if the env variable already exists
+        if (atoi(getenv(FIRST_PID)) != getpid()) {
+            logs.logfile = fopen(fileName, "a");
+        } else {
+            logs.logfile = fopen(fileName, "w");  // erase content
+            logs.logfile = freopen(fileName, "a", logs.logfile);
         }
+
+        logs.hasLogFile = true;
+        return;
     }
-    log->hasLogFile = false;
+    logs.hasLogFile = false;
 }
 
-void closeLogFile(struct logInfo *log) {
-    if (log->hasLogFile) {
-        fclose(log->logfile);
-    }
-}
-
-void setLogStart(struct logInfo *log) {
+void setLogStart() {
     if (getenv(FIRST_PID)) {  // if the env variable already exists
-        log->startTime = atol(getenv(START_TIME));
+        logs.startTime = atol(getenv(START_TIME));
     } else {
         struct timespec time;
         clock_gettime(CLOCK_REALTIME, &time);
-        log->startTime = time.tv_sec*1000 + time.tv_nsec/(pow(10, 6));
+        logs.startTime = time.tv_sec*1000 + time.tv_nsec/(pow(10, 6));
 
         char pidString[10];
         char startTimeString[50];
         snprintf(pidString, sizeof(pidString), "%d", getpid());
         snprintf(startTimeString, sizeof(startTimeString) , "%ld",
-                 log->startTime);
+                logs.startTime);
 
         int stat = setenv(START_TIME, startTimeString, 1);
         if (stat == -1) {
@@ -49,75 +45,63 @@ void setLogStart(struct logInfo *log) {
     }
 }
 
-void logAction(struct logInfo *log, char *action, char *info) {
-    if (!log->hasLogFile) {
+void closeLogFile() {
+    if (logs.hasLogFile) {
+        fclose(logs.logfile);
+    }
+}
+
+void logAction(char *action, char *info) {
+    if (!logs.hasLogFile) {
         return;
     }
     pid_t pid = getpid();
-    clock_t now = clock();
+    struct timespec timeStruct;
+    clock_gettime(CLOCK_REALTIME, &timeStruct);
+    long now = timeStruct.tv_sec * 1000 + timeStruct.tv_nsec / (pow(10, 6));
+    long time = now - logs.startTime;
     fprintf(
-        log->logfile,
+        logs.logfile,
         "%ld ; %d ; %s ; %s\n",
-        now - log->startTime,
+        time,
         pid,
         action,
         info);
 }
 
-void logProcessCreation(struct logInfo *log, int argc, char *argv[]) {
-    char *args = argv[0];
+void logProcessCreation(int argc, char* argv[]) {
+    char args[2048];
+    snprintf(args, sizeof(args), "%s", argv[0]);
     for (int i = 1; i < argc; i++) {
-        strcat(args, " ");
-        strcat(args, argv[i]);
+        snprintf(args + strlen(args), sizeof(args), " %s", argv[i]);
     }
-    logAction(log, "PROC_CREAT", args);
+    logAction("PROC_CREAT", args);
 }
 
-void logExit(struct logInfo *log, int exitStatus) {
+void logExit(int exitStatus) {
     char exit[20];
     snprintf(exit, sizeof(exit), "%d", exitStatus);
-    logAction(log, "PROC_EXIT", exit);
 
+    logAction("PROC_EXIT", exit);
     unsetenv(START_TIME);
     unsetenv(FIRST_PID);
 }
 
-void logSignalReceived(struct logInfo *log, int signal) {
-    char *sigName = strdup(sys_siglist[signal]);
-    if (!sigName) {
-        return;
-    }
-    char *oldPointer = sigName;
-    while (*sigName) {
-        *sigName = toupper(*sigName);
-        sigName++;
-    }
-
-    logAction(log, "SIGNAL_RECV", sigName);
-    free(oldPointer);
+void logSignalReceived(int signal) {
+    logAction("SIGNAL_RECV", strsignal(signal));
 }
 
-void logSignalSent(struct logInfo *log, int signal, int pid) {
-    char *sigName = strdup(sys_siglist[signal]);
-    if (!sigName) {
-        return;
-    }
-    char *oldPointer = sigName;
-    while (*sigName) {
-        *sigName = toupper(*sigName);
-        sigName++;
-    }
+void logSignalSent(int signal, int pid) {
+    char *sigName = strsignal(signal);
 
     char sigNamePid[100];
     snprintf(sigNamePid, sizeof(sigNamePid), "%s : %d", sigName, pid);
-    logAction(log, "SIGNAL_SENT", sigNamePid);
-    free(oldPointer);
+    logAction("SIGNAL_SENT", sigNamePid);
 }
 
-void logChangePerms(struct logInfo *log, char *path, mode_t oldPerm,
-                    mode_t newPerm) {
-    char perms[100];
-    snprintf(perms, sizeof(perms), " : %o : %o", oldPerm, newPerm);
-    strcat(path, perms);
-    logAction(log, "FILE_MODF", path);
+void logChangePerms(char *path, mode_t newPerm, mode_t oldPerms) {
+    char perms[300];
+
+    snprintf(perms, sizeof(perms), "%s : %o : %o", path, oldPerms, newPerm);
+    logAction("FILE_MODF", perms);
 }

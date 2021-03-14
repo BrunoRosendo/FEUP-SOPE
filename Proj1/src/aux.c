@@ -1,5 +1,5 @@
-#include "aux.h"
 #include "logs.h"
+#include "aux.h"
 
 // VARIABLES NEEDED FOR LOGS AND SIGNAL HANDLING
 
@@ -7,12 +7,11 @@ static int waitingForSig = 1;
 static int nftot = 0;
 static int nfmod = 0;
 static char canonicPath[256];
-extern logInfo logInformation;
 
 // FUNCTIONS FOR SIGNAL HANDLING
 
 void handleSigint(int signo) {
-    logSignalReceived(&logInformation, signo);
+    logSignalReceived(signo);
 
     pid_t pid = getpid();
     printf("%d ; %s ; %d ; %d\n", pid, canonicPath, nftot, nfmod);
@@ -25,10 +24,13 @@ void handleSigint(int signo) {
         char buffer[20];  // for multiple CTRL+C
         scanf("%s", buffer);
 
-        if (toupper(buffer[0]) == 'Y')
-            killpg(firstpid, SIGKILL);
-        else
+        if (toupper(buffer[0]) == 'Y') {
+            logSignalSent(SIGUSR2, firstpid);
+            killpg(firstpid, SIGUSR2);
+        } else {
+            logSignalSent(SIGUSR1, firstpid);
             killpg(firstpid, SIGUSR1);
+        }
 
     } else {
         while (waitingForSig) {}  // wait for a decision
@@ -37,8 +39,12 @@ void handleSigint(int signo) {
 }
 
 void handleOtherSigs(int signo) {
-    logSignalReceived(&logInformation, signo);
+    logSignalReceived(signo);
     if (signo == SIGUSR1) waitingForSig = 0;
+    if (signo == SIGUSR2) {
+        logExit(6);
+        exit(6);
+    }
 }
 
 void subscribeSignals(char newPath[]) {
@@ -49,6 +55,7 @@ void subscribeSignals(char newPath[]) {
 
     if (sigemptyset(&smask) == -1) {
         perror("sigset failed\n");
+        logExit(5);
         exit(5);
     }
     newInt.sa_handler = handleSigint;
@@ -56,6 +63,7 @@ void subscribeSignals(char newPath[]) {
     newInt.sa_flags = 0;
     if (sigaction(SIGINT, &newInt, &oldInt) == -1) {
         perror("sigaction failed\n");
+        logExit(5);
         exit(5);
     }
 
@@ -67,6 +75,7 @@ void subscribeSignals(char newPath[]) {
         sigset_t mask;
         if (sigemptyset(&mask) == -1) {
             perror("sigset failed\n");
+            logExit(5);
             exit(5);
         }
         new.sa_handler = handleOtherSigs;
@@ -74,7 +83,7 @@ void subscribeSignals(char newPath[]) {
         new.sa_flags = 0;
         if (sigaction(i, &new, &old) == -1) {
             perror("sigaction failed\n");
-            printf("%d\n", i);
+            logExit(5);
             exit(5);
         }
     }
@@ -82,19 +91,20 @@ void subscribeSignals(char newPath[]) {
 
 // FUNCTIONS FOR PARSING AND CHANGING FILE PERMISSIONS
 
-void parseMode(const char *modeString, Options *options, char cutString[]) {
+void parseMode(char *modeString, Options *options, char cutString[]) {
     // Check if it's in octal mode
     if (isdigit(modeString[0])) {
         for (int i = 0; modeString[i] != '\0'; ++i)
             if (modeString[i] < '0' || modeString[i] > '7') {
                 fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+                logExit(2);
                 exit(2);
             }
 
         options->octal = true;
         options->action = substitute;
         options->user = all;
-        strcpy(cutString, modeString);
+        snprintf(cutString, sizeof(modeString), "%s", modeString);
         return;
     }
 
@@ -119,6 +129,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
                 break;
             default:
                 fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+                logExit(3);
                 exit(3);
         }
     }
@@ -135,6 +146,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     i++;
@@ -177,6 +189,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     ++i;
@@ -207,6 +220,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
     }
     ++i;
@@ -237,6 +251,7 @@ mode_t getOctalFromOctalString(char *modeString) {
             break;
         default:
             fprintf(stderr, "xmod: invalid mode: '%s'\n", modeString);
+            logExit(3);
             exit(3);
         }
     return mode;
@@ -248,6 +263,7 @@ mode_t getPermissionsFromFile(char* fileName) {
     if (stat(fileName, &fileStat) < 0) {
         fprintf(stderr, "xmod: cannot access '%s': No such file or directory\n",
                 fileName);
+        logExit(4);
         exit(4);
     }
 
@@ -285,9 +301,12 @@ mode_t getPermissionsFromFile(char* fileName) {
 
 
 // assumes valid arguments
-mode_t getOctalFromExplicitString(const char *modeString, Options *options,
+mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName) {
     mode_t mode = 0;
+    mode_t oldMode = getPermissionsFromFile(fileName);
+    if (options->action == erase || options->action == add) mode = oldMode;
+
     for (int i = 0; i < 3; ++i) {  // other chars get ignored
         if (options->action == substitute || options->action == add) {
             switch (options->user) {
@@ -295,16 +314,22 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options,
                     if (modeString[i] == 'r') mode |= 0400;
                     if (modeString[i] == 'w') mode |= 0200;
                     if (modeString[i] == 'x') mode |= 0100;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0077);
                     break;
                 case group:
                     if (modeString[i] == 'r') mode |= 0040;
                     if (modeString[i] == 'w') mode |= 0020;
                     if (modeString[i] == 'x') mode |= 0010;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0707);
                     break;
                 case others:
                     if (modeString[i] == 'r') mode |= 0004;
                     if (modeString[i] == 'w') mode |= 0002;
                     if (modeString[i] == 'x') mode |= 0001;
+                    if (options->action == substitute)
+                        mode |= (oldMode & 0770);
                     break;
                 case all:
                     if (modeString[i] == 'r') mode |= 0444;
@@ -312,10 +337,7 @@ mode_t getOctalFromExplicitString(const char *modeString, Options *options,
                     if (modeString[i] == 'x') mode |= 0111;
                     break;
             }
-            if (options->action == add)
-                mode |= getPermissionsFromFile(fileName);
         } else {  // Erase
-            mode = getPermissionsFromFile(fileName);
             switch (options->user) {
                 case owner:
                     if (modeString[i] == 'r') mode &= 0377;
@@ -362,13 +384,16 @@ void parseFlag(char *flag, Options *options) {
                 break;
             default:
                 fprintf(stderr, "xmod: invalid options -- '%c'\n", flag[i]);
+                logExit(3);
                 exit(3);
         }
     }
 }
 
 // assumes valid arguments
-void changePermsWithOctal(const char *pathname, mode_t mode) {
+void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode) {
+    if (mode != oldMode)
+        logChangePerms(pathname, mode, oldMode);
     chmod(pathname, mode);
 }
 
@@ -390,7 +415,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
-                changePermsWithOctal(directoryPath, mode);
+                changePermsWithOctal(directoryPath, mode, oldMode);
                 if (oldMode != mode) nfmod++;
             } else {
                 fprintf(stderr, "Error opening directory\n");
@@ -398,7 +423,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             return;
         }
 
-        changePermsWithOctal(directoryPath, mode);
+        changePermsWithOctal(directoryPath, mode, oldMode);
         if (oldMode != mode) nfmod++;
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
@@ -422,20 +447,20 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
 
             // test the type of file
             if (S_ISDIR(inode.st_mode)) {
+                argv[argc-1] = name;
                 int pid = fork();
                 switch (pid) {
                     case 0:
-                        argv[argc-1] = name;
-
                         execvp("./xmod", argv);
                         break;
                     default:
+                        logProcessCreation(argc, argv);
                         break;
                 }
             } else if (S_ISREG(inode.st_mode)) {
                 mode_t oldModeFile = getPermissionsFromFile(name);
                 nftot++;
-                changePermsWithOctal(name, mode);
+                changePermsWithOctal(name, mode, oldModeFile);
                 if (mode != oldModeFile) nfmod++;
             }
         }
@@ -455,7 +480,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         lstat(directoryPath, &inode);
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             nftot++;
-            changePermsWithOctal(directoryPath, mode);
+            changePermsWithOctal(directoryPath, mode, oldMode);
             if (mode != oldMode) nfmod++;
         } else {
             fprintf(stderr,
