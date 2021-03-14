@@ -9,7 +9,7 @@ int main(int argc, char *argv[], char *envp[]) {
         fprintf(stderr, "xmod: missing operand\n");
         exit(1);
     }
-    setLogFile(argc, argv, envp); //Start logging
+    setLogFile(argc, argv, envp);  // Start logging
     Options options;
     options.recursive = false;  // default
     options.output = simple;
@@ -36,6 +36,6 @@ int main(int argc, char *argv[], char *envp[]) {
 
     closeLogFile(&logs);
 
-    logExit(0); //Register logging exit from the process
+    logExit(0);  // Register logging exit from the process
     return 0;
 }

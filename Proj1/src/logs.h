@@ -19,9 +19,9 @@ typedef struct logInfo {
     FILE *logfile;
     long startTime;
     char * args;
-};
+} logInfo;
 
-struct logInfo logs;
+logInfo logs;
 
 /**
  * Sets the log file
@@ -66,6 +66,6 @@ void logSignalSent(int signal, int pid);
 /**
  * Logs a change in permission
  */
-void logChangePerms(char*path, mode_t newPerm);
+void logChangePerms(char*path, mode_t newPerm, mode_t oldMode);
 
 #endif  // LOGS_H_

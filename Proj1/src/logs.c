@@ -1,5 +1,4 @@
 #include <sys/stat.h>
-#include "aux.h"
 #include "logs.h"
 
 void setLogFile(int argc, char *argv[], char *envp[]) {
@@ -11,7 +10,8 @@ void setLogFile(int argc, char *argv[], char *envp[]) {
             strtok(thisEnv, delim);
             char *filename = strtok(NULL, delim);
 
-            if (getenv(FIRST_PID)) {  // if the env variable already exists
+            // if the env variable already exists
+            if (atoi(getenv(FIRST_PID)) != getpid()) {
                 logs.logfile = fopen(filename, "a");
             } else {
                 logs.logfile = fopen(filename, "w");
@@ -20,13 +20,12 @@ void setLogFile(int argc, char *argv[], char *envp[]) {
 
             // Save the arguments
             char args[2048];
-            strcat(args, argv[0]);
+            snprintf(args, sizeof(args), "%s", argv[0]);
             for (int i = 1; i < argc; i++) {
-                strcat(args, " ");
-                strcat(args, argv[i]);
+                snprintf(args + strlen(args), sizeof(args), " %s", argv[i]);
             }
             logs.args = (char*) malloc(sizeof(args));
-            strcpy(logs.args,args);
+            snprintf(logs.args, sizeof(args), "%s", args);
 
             // Start the timer for the logging
             setLogStart();
@@ -76,7 +75,7 @@ void logAction(char *action, char *info) {
     }
     pid_t pid = getpid();
     clock_t now = clock();
-    long int time = (now - logs.startTime) * 1000 / CLOCKS_PER_SEC;
+    long time = (now - logs.startTime) * 1000 / CLOCKS_PER_SEC;
     fprintf(
         logs.logfile,
         "%ld ; %d ; %s ; %s\n",
@@ -131,12 +130,9 @@ void logSignalSent(int signal, int pid) {
     free(oldPointer);
 }
 
-void logChangePerms(char *path, mode_t newPerm) {
-    char *newpath = path;
-    char perms[100];
-    mode_t oldPerms = getPermissionsFromFile(path);
+void logChangePerms(char *path, mode_t newPerm, mode_t oldPerms) {
+    char perms[300];
 
-    snprintf(perms, sizeof(perms), " : %o : %o", oldPerms, newPerm);
-    strcat(newpath, perms);
-    logAction("FILE_MODF", newpath);
+    snprintf(perms, sizeof(perms), "%s : %o : %o", path, oldPerms, newPerm);
+    logAction("FILE_MODF", perms);
 }

@@ -31,7 +31,7 @@ void handleOtherSigs(int signo);
 
 void subscribeSignals(char newPath[]);
 
-void parseMode(const char *modeString, Options *options, char cutString[]);
+void parseMode(char *modeString, Options *options, char cutString[]);
 
 /**
  * Generate octal from octal string
@@ -49,12 +49,12 @@ mode_t getPermissionsFromFile(char* fileName);
  * Generate octal from string
  * @return octal
  *  */
-mode_t getOctalFromExplicitString(const char *modeString, Options *options,
+mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName);
 
 void parseFlag(char *flag, Options *options);
 
-void changePermsWithOctal(const char *pathname, mode_t mode);
+void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode);
 
 void applyToPath(char *directoryPath, mode_t mode, Options *options,
                   int argc, char **argv);

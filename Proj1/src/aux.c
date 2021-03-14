@@ -81,7 +81,7 @@ void subscribeSignals(char newPath[]) {
 
 // FUNCTIONS FOR PARSING AND CHANGING FILE PERMISSIONS
 
-void parseMode(const char *modeString, Options *options, char cutString[]) {
+void parseMode(char *modeString, Options *options, char cutString[]) {
     // Check if it's in octal mode
     if (isdigit(modeString[0])) {
         for (int i = 0; modeString[i] != '\0'; ++i)
@@ -93,7 +93,7 @@ void parseMode(const char *modeString, Options *options, char cutString[]) {
         options->octal = true;
         options->action = substitute;
         options->user = all;
-        strcpy(cutString, modeString);
+        snprintf(cutString, sizeof(modeString), "%s", modeString);
         return;
     }
 
@@ -284,7 +284,7 @@ mode_t getPermissionsFromFile(char* fileName) {
 
 
 // assumes valid arguments
-mode_t getOctalFromExplicitString(const char *modeString, Options *options,
+mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName) {
     mode_t mode = 0;
     for (int i = 0; i < 3; ++i) {  // other chars get ignored
@@ -367,8 +367,8 @@ void parseFlag(char *flag, Options *options) {
 }
 
 // assumes valid arguments
-void changePermsWithOctal(const char *pathname, mode_t mode) {
-    logChangePerms(pathname, mode);
+void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode) {
+    logChangePerms(pathname, mode, oldMode);
     chmod(pathname, mode);
 }
 
@@ -390,7 +390,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             // get info about the file/folder at the path name
             lstat(directoryPath, &inode);
             if (S_ISREG(inode.st_mode)) {  // if it is a file
-                changePermsWithOctal(directoryPath, mode);
+                changePermsWithOctal(directoryPath, mode, oldMode);
                 if (oldMode != mode) nfmod++;
             } else {
                 fprintf(stderr, "Error opening directory\n");
@@ -398,7 +398,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             return;
         }
 
-        changePermsWithOctal(directoryPath, mode);
+        changePermsWithOctal(directoryPath, mode, oldMode);
         if (oldMode != mode) nfmod++;
 
         while ((dirEntry = readdir(dirPointer)) != 0) {
@@ -436,7 +436,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
             } else if (S_ISREG(inode.st_mode)) {
                 mode_t oldModeFile = getPermissionsFromFile(name);
                 nftot++;
-                changePermsWithOctal(name, mode);
+                changePermsWithOctal(name, mode, oldModeFile);
                 if (mode != oldModeFile) nfmod++;
             }
         }
@@ -456,7 +456,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
         lstat(directoryPath, &inode);
         if (S_ISDIR(inode.st_mode) || S_ISREG(inode.st_mode)) {
             nftot++;
-            changePermsWithOctal(directoryPath, mode);
+            changePermsWithOctal(directoryPath, mode, oldMode);
             if (mode != oldMode) nfmod++;
         } else {
             fprintf(stderr,
