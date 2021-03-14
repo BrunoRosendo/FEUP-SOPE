@@ -25,7 +25,7 @@ void handleSigint(int signo) {
         scanf("%s", buffer);
 
         if (toupper(buffer[0]) == 'Y')
-            killpg(firstpid, SIGKILL);
+            killpg(firstpid, SIGUSR2);
         else
             killpg(firstpid, SIGUSR1);
 
@@ -38,6 +38,7 @@ void handleSigint(int signo) {
 void handleOtherSigs(int signo) {
     logSignalReceived(signo);
     if (signo == SIGUSR1) waitingForSig = 0;
+    if (signo == SIGUSR2) exit(5);
 }
 
 void subscribeSignals(char newPath[]) {
