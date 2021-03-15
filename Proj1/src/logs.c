@@ -8,7 +8,8 @@ void setLogFile() {
             logs.logfile = fopen(fileName, "a");
         } else {
             logs.logfile = fopen(fileName, "w");  // erase content
-            logs.logfile = freopen(fileName, "a", logs.logfile);
+            fclose(logs.logfile);
+            logs.logfile = fopen(fileName, "a");
         }
 
         logs.hasLogFile = true;
@@ -49,6 +50,7 @@ void closeLogFile() {
     if (logs.hasLogFile) {
         fclose(logs.logfile);
     }
+    if (canonicPath) free(canonicPath);
 }
 
 void logAction(char *action, char *info) {
