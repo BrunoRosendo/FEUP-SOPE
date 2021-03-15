@@ -290,14 +290,14 @@ void handleChangedPermissions(char *filePath, mode_t mode, mode_t oldMode,
             char explicitStringModeOld[10];
             getExcplicitStringFromOctal(explicitStringMode, mode);
             getExcplicitStringFromOctal(explicitStringModeOld, oldMode);
-            printf("mode of %s changed from 0%o (%s) to 0%o (%s) \n",
+            printf("mode of '%s' changed from 0%o (%s) to 0%o (%s) \n",
                 filePath, oldMode, explicitStringModeOld,
                 mode, explicitStringMode);
         }
     } else if (options->output == verbose) {
         char explicitStringMode[10];
         getExcplicitStringFromOctal(explicitStringMode, mode);
-        printf("mode of %s retained as 0%o (%s) \n",
+        printf("mode of '%s' retained as 0%o (%s) \n",
                 filePath, mode, explicitStringMode);
      }
 }
