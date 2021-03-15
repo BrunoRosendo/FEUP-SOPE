@@ -344,8 +344,6 @@ mode_t getPermissionsFromFile(char* fileName) {
     return mode;
 }
 
-
-// assumes valid arguments
 mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName) {
     mode_t mode = 0;
@@ -435,7 +433,6 @@ void parseFlag(char *flag, Options *options) {
     }
 }
 
-// assumes valid arguments
 void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode) {
     if (mode != oldMode)
         logChangePerms(pathname, mode, oldMode);
@@ -451,7 +448,7 @@ void applyToPath(char *directoryPath, mode_t mode, Options *options,
 
         struct dirent *dirEntry;
         struct stat inode;
-        char name[1000];
+        char name[MAX_FILEPATH_SIZE];
 
         mode_t oldMode = getPermissionsFromFile(directoryPath);
         nftot++;

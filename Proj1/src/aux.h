@@ -1,16 +1,22 @@
 #ifndef AUX_H_
 #define AUX_H_
 
+// System includes
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+
+// C libraries includes
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <stdbool.h>
 #include <ctype.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <dirent.h>
+
+// Constants and structs
+#define MAX_FILEPATH_SIZE 500
 
 typedef enum outputOption {simple, verbose, onChange} outputOption;
 typedef enum userType {owner, group, others, all} userType;
@@ -24,13 +30,27 @@ typedef struct Options {
     permAction action;
 } Options;
 
-
+/**
+ * Handles an interruptions signal
+ */
 void handleSigint(int signo);
 
+/**
+ * Handles all signals throu 1-31 except
+ * SIGINT, SIGKILL AND SIGSTOP
+ */
 void handleOtherSigs(int signo);
 
+/**
+ * Subscribes all signals to their functions
+ * except SIGKILL AND SIGSTOP
+ */
 void subscribeSignals(char newPath[]);
 
+/**
+ * Parses a string mode, updates the options
+ * and saves the important part to cutString
+ */
 void parseMode(char *modeString, Options *options, char cutString[]);
 
 /**
@@ -63,10 +83,23 @@ mode_t getPermissionsFromFile(char* fileName);
 mode_t getOctalFromExplicitString(char *modeString, Options *options,
                                   char* fileName);
 
+/**
+ * Parses a flag and updates the options
+ * Accepts multiple flags such as -Rv
+ */
 void parseFlag(char *flag, Options *options);
 
+/**
+ * Changes permissions with a mode_t variable
+ * and logs it.
+ * Assumes valid arguments
+ */
 void changePermsWithOctal(char *pathname, mode_t mode, mode_t oldMode);
 
+/**
+ * Takes a mode_t variable and applies it
+ * according to the options
+ */
 void applyToPath(char *directoryPath, mode_t mode, Options *options,
                   int argc, char **argv);
 

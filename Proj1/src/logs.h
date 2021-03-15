@@ -1,6 +1,10 @@
 #ifndef LOGS_H_
 #define LOGS_H_
 
+// System includes
+#include <sys/stat.h>
+
+// C libraries includes
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
@@ -10,7 +14,8 @@
 #include <signal.h>
 #include <ctype.h>
 #include <math.h>
-#include <sys/stat.h>
+
+// Constants and structs
 #define LOGFILE "LOG_FILENAME"
 #define START_TIME "XMOD_START_TIME"
 #define FIRST_PID "XMOD_FIRST_PID"
