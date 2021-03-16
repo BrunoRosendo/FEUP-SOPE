@@ -27,6 +27,7 @@ typedef struct logInfo {
 } logInfo;
 
 logInfo logs;
+
 extern char *canonicPath;
 
 /**

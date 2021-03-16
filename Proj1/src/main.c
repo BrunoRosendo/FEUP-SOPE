@@ -43,5 +43,6 @@ int main(int argc, char *argv[], char *envp[]) {
 
     logExit(0);  // Register logging exit from the process
     closeLogFile();
+
     return 0;
 }
