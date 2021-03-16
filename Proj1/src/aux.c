@@ -7,7 +7,7 @@ static int waitingForSig = 1;
 static int nftot = 0;
 static int nfmod = 0;
 
-char *canonicPath = NULL;
+char *canonicPath = NULL;  // this will be malloc'ed by realpath()
 
 // FUNCTIONS FOR SIGNAL HANDLING
 
