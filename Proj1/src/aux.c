@@ -6,6 +6,7 @@
 static int waitingForSig = 1;
 static int nftot = 0;
 static int nfmod = 0;
+
 char *canonicPath = NULL;  // this will be malloc'ed by realpath()
 
 // FUNCTIONS FOR SIGNAL HANDLING
@@ -48,7 +49,7 @@ void handleOtherSigs(int signo) {
 }
 
 void subscribeSignals(char newPath[]) {
-    realpath(newPath, canonicPath);  // for sigint handling
+    canonicPath = realpath(newPath, NULL);  // for sigint handling
     // Subscribe SIGINT handling
     struct sigaction newInt, oldInt;
     sigset_t smask;
