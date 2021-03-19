@@ -411,7 +411,7 @@ mode_t getOctalFromExplicitString(char *modeString, Options *options,
 
 void parseFlag(char *flag, Options *options) {
     if (flag[0] != '-') {
-        fprintf(stderr, "xmod: invalid mode: '%s'\n", flag);
+        fprintf(stderr, "xmod: invalid flag: '%s'\n", flag);
         exit(3);
     }
 
