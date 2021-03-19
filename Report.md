@@ -11,28 +11,20 @@ For example.
 In a more general way
 > ./xmod <[-R|-c|-v]> <[a|u|g|o][+|=|-][-|r|w|x] <file or directory>
 
--R: Uses recursion on the directory
-
--v: Provides extra information about every step taken
-
--c: Provides extra information when a change to the permissions is made
+-R: Uses recursion on the directory\
+-v: Provides extra information about every step taken\
+-c: Provides extra information when a change to the permissions is made\
 
 
- a: Sets the permission for all users
- 
- u: Sets the permission for the user who owns the file
- 
- g: Sets the permission for other users in the file group
- 
- o: Sets the permission for users not in the file group
-
-
- r: Sets reading permission
- 
- w: Sets writing permission
- 
+ a: Sets the permission for all users\
+ u: Sets the permission for the user who owns the file\
+ g: Sets the permission for other users in the file group\
+ o: Sets the permission for users not in the file group\
+\
+ r: Sets reading permission\
+ w: Sets writing permission\
  x: Sets executing permission
-   
+ 
 # **Errors and input**
 
 There must always be at least 3 arguments (including the program call). The last and second to last will be the file or directory to be affected and the permissions, respectively.
