@@ -1,9 +1,9 @@
-**Compilation**
+# **Compilation**
 
 To compile simply do make on the src folder.
 > make
  
-**Running**
+# **Running**
 
 To run the program, call the executable, followed by the flags, permissions and file or directory to apply to.
 For example.
@@ -12,28 +12,43 @@ In a more general way
 > ./xmod <[-R|-c|-v]> <[a|u|g|o][+|=|-][-|r|w|x] <file or directory>
 
 -R: Uses recursion on the directory
+
 -v: Provides extra information about every step taken
+
 -c: Provides extra information when a change to the permissions is made
 
+
  a: Sets the permission for all users
+ 
  u: Sets the permission for the user who owns the file
+ 
  g: Sets the permission for other users in the file group
+ 
  o: Sets the permission for users not in the file group
 
+
  r: Sets reading permission
+ 
  w: Sets writing permission
+ 
  x: Sets executing permission
    
-**Errors and input**
+# **Errors and input**
 
 There must always be at least 3 arguments (including the program call). The last and second to last will be the file or directory to be affected and the permissions, respectively.
+
 Failure to provide a valid file or directory will yield an error.
+
 Failure to provide a valid mode will yield an error.
+
 Providing wrong flags will yield an error.
+
 Trying to terminate the program will prompt the user.
+
 When changing permissions recursively, the program will output error messages if it encounts a problem with any file in the directory.
+
   
-  **Implementation**
+# **Implementation**
   
 1. Set the logfile and signals
 2. Parse flags used
@@ -56,7 +71,7 @@ In order for the child processes to log correctly, two environment variables wer
 
 When the user uses 'CTRL-C' and decides to end the execution of the program, the parent (oldest) process sends a signal to everyone in the same group (USR2) so they can know they should end their executions aswell. On the contrary, if the user decides not to end the program, a USR1 signal is used to tell its children to return to their normal activity, since they had been waiting until now.
   
-  **Self-evaluation**
+ # **Self-evaluation**
   
 Henrique Sousa up201906681: 12
 
