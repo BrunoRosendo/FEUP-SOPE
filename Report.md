@@ -65,10 +65,10 @@ When the user uses 'CTRL-C' and decides to end the execution of the program, the
   
  # **Self-evaluation**
   
-Henrique Sousa up201906681: 12
+Henrique Sousa up201906681: 25%
 
-Domingos Santos up2019
+Domingos Santos up201906680: 25%
 
-Bruno Rosendo up201906334:
+Bruno Rosendo up201906334: 25%
 
-João Mesquita up2019
+João Mesquita up201906682: 25%
