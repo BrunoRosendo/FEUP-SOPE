@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     }
 
     Settings settings;
-    parseCMDArgs(argv, &settings);
+    init(argv, &settings);
 
     return 0;
 }
