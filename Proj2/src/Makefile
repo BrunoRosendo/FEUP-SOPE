@@ -8,8 +8,8 @@ CLIENT_SRC = client_src/client.c client_src/aux.c client_src/aux.h
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
 CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
 
-SERVER_EXEC = server
-CLIENT_EXEC = client
+SERVER_EXEC = s
+CLIENT_EXEC = c
 
 all: $(SERVER_EXEC) $(CLIENT_EXEC)
 
