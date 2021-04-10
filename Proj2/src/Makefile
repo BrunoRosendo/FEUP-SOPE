@@ -19,12 +19,11 @@ all: $(SERVER_EXEC) $(CLIENT_EXEC)
 $(SERVER_EXEC): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(SERVER_OBJ) $(LIBS)
 
-
-$(CLIENT_EXEC): $(CLIENTOBJ)
+$(CLIENT_EXEC): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d *_src/*.o *_src/*.d
+	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o
 
 
 # MAKEFILE FORNECIDO (depois guardamos noutro lugar)
