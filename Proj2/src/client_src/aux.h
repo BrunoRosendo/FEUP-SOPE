@@ -14,6 +14,8 @@
 
 #define FIFO_PUBLIC_PERMS 0666
 
+#define SYNC_WAIT_TIME 500
+
 /* DATA STRUCTURES */
 
 typedef struct Settings {
