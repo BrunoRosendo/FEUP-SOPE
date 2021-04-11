@@ -7,6 +7,10 @@ void init(char* argv[], Settings* settings) {
     syncWithServer(settings);
 }
 
+void exit(Settings* settings) {
+    close(settings->fifoname);
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 4) {
         fprintf(stderr, "Wrong number of arguments\n");
@@ -17,5 +21,6 @@ int main(int argc, char *argv[]) {
     Settings settings;
     init(argv, &settings);
 
+    exit(&settings);
     return 0;
 }
