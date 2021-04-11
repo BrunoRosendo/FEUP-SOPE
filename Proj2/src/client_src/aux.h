@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <errno.h>
 
 // System libs
 #include <sys/types.h>
@@ -21,12 +22,14 @@
 #define FIFO_PUBLIC_PERMS 0666
 
 #define SYNC_WAIT_TIME 500
+#define MAX_PATH_SIZE 500
+#define MAX_REQUEST_SIZE 30
 
 /* DATA STRUCTURES */
 
 typedef struct Settings {
     time_t execTime;
-    char fifoname[500];
+    char fifoname[MAX_PATH_SIZE];
     int fd;  // File (fifo) descriptor
 } Settings;
 

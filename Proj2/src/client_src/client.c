@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 
     Settings settings;
     init(argv, &settings);
-
+    generateRequests(&settings);
     exitProgram(&settings);
     return 0;
 }
