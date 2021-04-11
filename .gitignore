@@ -2,3 +2,7 @@
 Proj1/logs.txt
 c
 s
+*.o
+*.d
+!Proj2/src/server_src/lib.o
+!Proj2/src/server_src/server.o
