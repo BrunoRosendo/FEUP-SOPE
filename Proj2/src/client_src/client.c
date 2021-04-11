@@ -1,4 +1,11 @@
-#include "aux.h"
+#include "client.h"
+
+void init(char* argv[], Settings* settings) {
+    if (parseCMDArgs(argv, settings))
+        exit(1);
+
+    syncWithServer(settings);
+}
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {

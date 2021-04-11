@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra
 LIBS = -pthread
 
 SERVER_SRC = server_src/server.c server_src/delay.c server_src/delay.h server_src/lib.c
-CLIENT_SRC = client_src/client.c client_src/aux.c client_src/aux.h
+CLIENT_SRC = client_src/client.c client_src/parsing.c client_src/communication.c
 
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
 CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
