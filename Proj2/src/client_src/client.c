@@ -5,10 +5,12 @@ void init(char* argv[], Settings* settings) {
         exit(1);
 
     syncWithServer(settings);
+    srand(time(NULL));
 }
 
-void exit(Settings* settings) {
-    close(settings->fifoname);
+void exitProgram(Settings* settings) {
+    close(settings->fd);
+    unlink(settings->fifoname);
 }
 
 int main(int argc, char *argv[]) {
@@ -21,6 +23,6 @@ int main(int argc, char *argv[]) {
     Settings settings;
     init(argv, &settings);
 
-    exit(&settings);
+    exitProgram(&settings);
     return 0;
 }

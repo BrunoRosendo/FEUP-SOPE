@@ -8,7 +8,7 @@ int parseCMDArgs(char* argv[], Settings* settings) {
         return 1;
     }
 
-    int runningTime = atoi(argv[2]);
+    time_t runningTime = atoi(argv[2]);
     if (runningTime < 1) {
         fprintf(stderr, "%s %s\n", "Invalid 3rd argument! The specified time",
             "should be an integer greater than 1");
@@ -22,6 +22,7 @@ int parseCMDArgs(char* argv[], Settings* settings) {
         return 1;
     }
 
-    settings->execTime = runningTime, settings->fifoname = fifoName;
+    settings->execTime = runningTime;
+    snprintf(settings->fifoname, sizeof(settings->fifoname), "%s", fifoName);
     return 0;
 }

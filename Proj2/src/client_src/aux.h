@@ -3,12 +3,18 @@
 
 /* INCLUDES */
 
+// C Libs
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+
+// System libs
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /* CONSTANTS */
 
@@ -19,8 +25,9 @@
 /* DATA STRUCTURES */
 
 typedef struct Settings {
-    unsigned execTime;
-    char* fifoname;
+    time_t execTime;
+    char fifoname[500];
+    int fd;  // File (fifo) descriptor
 } Settings;
 
 typedef struct Message {
