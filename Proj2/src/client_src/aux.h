@@ -23,4 +23,12 @@ typedef struct Settings {
     char* fifoname;
 } Settings;
 
+typedef struct Message {
+    int rid;        // request id
+    pid_t pid;      // process id
+    pthread_t tid;  // thread id
+    int tskload;   // task load
+    int tskres;    // task result
+} Message;
+
 #endif  // AUX_H_
