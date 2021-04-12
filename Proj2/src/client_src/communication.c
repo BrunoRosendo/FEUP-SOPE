@@ -2,6 +2,8 @@
 
 static time_t startTime;
 static int requestID = 0;  // this will have to be a mutex/sephamore
+static int res = -2;
+pthread_mutex_t lock;
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -22,28 +24,35 @@ void syncWithServer(Settings* settings) {
 void generateRequests(Settings* settings) {
     time(&startTime);  // sets the start of the requests
 
+    if (pthread_mutex_init(&lock, NULL)) {
+        fprintf(stderr, "Erros initializing mutex\n");
+        exit(3);
+    }
+
     while (1) {
         pthread_t tid;
         pthread_create(&tid, NULL, makeRequest, (void*)&settings->fd);
-        void* tmp;
-        pthread_join(tid, &tmp);  // we should wait for all threads at the same time
-        int *res = (int *) tmp;
+        // by detatching, the thread joins when it terminates
+        pthread_detach(tid);
 
-        if (time(NULL) - startTime >= settings->execTime || *res == -1)
+        if (time(NULL) - startTime >= settings->execTime || res == -1) {
+            pthread_mutex_unlock(&lock);
             break;
+        }
+        pthread_mutex_unlock(&lock);
 
         int waitTime = rand() % 100 + 1;  // milliseconds
-        break;
         usleep(waitTime);
     }
+    pthread_mutex_destroy(&lock);
 }
 
-// we will need mutexes/sephamores for this. It's not working correctly yet
 void *makeRequest(void* arg) {
+    pthread_mutex_lock(&lock);
     int *fd = (int *) arg;
 
     Message message;
-    message.tid = pthread_self();  // or pthread_self() ?
+    message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
     message.pid = getpid();
     message.tskload = rand() % 9 + 1;
@@ -58,22 +67,26 @@ void *makeRequest(void* arg) {
 
     // Send request
     char request[MAX_REQUEST_SIZE];
-    snprintf(request, sizeof(request), "%d ; %d ; %lu ; %d ; -1",
+    snprintf(request, sizeof(request), "%d %d %lu %d -1",
         message.rid,
         message.pid,
         message.tid,
         message.tskload);
     write(*fd, request, strlen(request) + 1);
+
     // Get answer
     char answer[MAX_REQUEST_SIZE];
     int fda = open(fifoName, O_RDONLY);  // not working very well :/ Is server not writing?
     read(fda, answer, sizeof(answer));
 
-    int res;
     char* split = answer;
     for (int i = 0; i < 4; ++i)
         split = strtok(split, " ");
     res = atoi(split);
 
-    return res;  // change this to put the result in a global variable
+    // Delete private info
+    close(fda);
+    unlink(fifoName);
+
+    return NULL;
 }
