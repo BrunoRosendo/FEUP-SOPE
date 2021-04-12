@@ -72,6 +72,7 @@ void *makeRequest(void* arg) {
         message.pid,
         message.tid,
         message.tskload);
+    printf("%s\n", request);
     write(*fd, request, strlen(request) + 1);
 
     // Get answer
