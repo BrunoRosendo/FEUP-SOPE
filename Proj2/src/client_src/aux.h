@@ -16,6 +16,7 @@
 // System libs
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
 /* CONSTANTS */
 
@@ -23,7 +24,7 @@
 
 #define SYNC_WAIT_TIME 500
 #define MAX_PATH_SIZE 500
-#define MAX_REQUEST_SIZE 30
+#define MAX_REQUEST_SIZE 100
 
 /* DATA STRUCTURES */
 

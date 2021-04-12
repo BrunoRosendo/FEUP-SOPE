@@ -12,7 +12,7 @@ void syncWithServer(Settings* settings) {
 
     printf("Synchronizing with server...\n");
     /*
-        The client is blocked until the server opens the public fifo as WRONLY
+        The client is blocked until the server opens the public fifo as RONLY
         Client sends the requests here and receives answers in private fifos
     */
     settings->fd = open(settings->fifoname, O_WRONLY);
@@ -26,13 +26,14 @@ void generateRequests(Settings* settings) {
         pthread_t tid;
         pthread_create(&tid, NULL, makeRequest, (void*)&settings->fd);
         void* tmp;
-        pthread_join(tid, &tmp);
+        pthread_join(tid, &tmp);  // we should wait for all threads at the same time
         int *res = (int *) tmp;
 
         if (time(NULL) - startTime >= settings->execTime || *res == -1)
             break;
 
         int waitTime = rand() % 100 + 1;  // milliseconds
+        break;
         usleep(waitTime);
     }
 }
@@ -42,7 +43,7 @@ void *makeRequest(void* arg) {
     int *fd = (int *) arg;
 
     Message message;
-    message.tid = pthread_self();
+    message.tid = pthread_self();  // or pthread_self() ?
     message.rid = requestID++;
     message.pid = getpid();
     message.tskload = rand() % 9 + 1;
@@ -57,13 +58,12 @@ void *makeRequest(void* arg) {
 
     // Send request
     char request[MAX_REQUEST_SIZE];
-    snprintf(request, sizeof(request), "%d %d %d %lu -1",
+    snprintf(request, sizeof(request), "%d ; %d ; %lu ; %d ; -1",
         message.rid,
-        message.tskload,
         message.pid,
-        message.tid);
+        message.tid,
+        message.tskload);
     write(*fd, request, strlen(request) + 1);
-
     // Get answer
     char answer[MAX_REQUEST_SIZE];
     int fda = open(fifoName, O_RDONLY);  // not working very well :/ Is server not writing?
