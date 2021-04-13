@@ -2,7 +2,8 @@
 
 static time_t startTime;
 static int requestID = 0;  // this will have to be a mutex/sephamore
-static int res = -2;
+// static int res = -2;
+static int serverClosed = 0;
 pthread_mutex_t lock;
 
 void syncWithServer(Settings* settings) {
@@ -35,9 +36,7 @@ void generateRequests(Settings* settings) {
         // by detatching, the thread joins when it terminates
         pthread_detach(tid);
 
-        // NAO HA GARANTIAS QUE ESTAMOS A VER AS RESPOSTAS TODAS. PROCURAR ALTERNATIVA
-        // USAR RETURN VALUE?
-        if (time(NULL) - startTime >= settings->execTime || res == -1)
+        if (time(NULL) - startTime >= settings->execTime || serverClosed)
             break;
 
         int waitTime = rand() % 100 + 1;  // milliseconds
@@ -76,7 +75,9 @@ void *makeRequest(void* arg) {
     int fda = open(fifoName, O_RDONLY);
 
     read(fda, &answer, sizeof(answer));
-    res = answer.tskres;
+    if (answer.tskres == -1)
+        serverClosed = 1;
+    // res = answer.tskres;
 
     // Delete private info
     close(fda);
