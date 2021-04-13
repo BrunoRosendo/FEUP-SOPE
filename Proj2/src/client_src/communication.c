@@ -35,11 +35,10 @@ void generateRequests(Settings* settings) {
         // by detatching, the thread joins when it terminates
         pthread_detach(tid);
 
-        if (time(NULL) - startTime >= settings->execTime || res == -1) {
-            pthread_mutex_unlock(&lock);
+        // NAO HA GARANTIAS QUE ESTAMOS A VER AS RESPOSTAS TODAS. PROCURAR ALTERNATIVA
+        // USAR RETURN VALUE?
+        if (time(NULL) - startTime >= settings->execTime || res == -1)
             break;
-        }
-        pthread_mutex_unlock(&lock);
 
         int waitTime = rand() % 100 + 1;  // milliseconds
         usleep(waitTime);
@@ -49,13 +48,17 @@ void generateRequests(Settings* settings) {
 
 void *makeRequest(void* arg) {
     pthread_mutex_lock(&lock);
+
+    // Get file descriptor
     int *fd = (int *) arg;
 
+    // Build message struct
     Message message;
     message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
     message.pid = getpid();
     message.tskload = rand() % 9 + 1;
+    message.tskres = -1;
 
     // Create private fifo
     char fifoName[MAX_PATH_SIZE];
@@ -66,28 +69,19 @@ void *makeRequest(void* arg) {
     }
 
     // Send request
-    char request[MAX_REQUEST_SIZE];
-    snprintf(request, sizeof(request), "%d %d %lu %d -1",
-        message.rid,
-        message.pid,
-        message.tid,
-        message.tskload);
-    printf("%s\n", request);
-    write(*fd, request, strlen(request) + 1);
+    write(*fd, &message, sizeof(message));
 
     // Get answer
-    char answer[MAX_REQUEST_SIZE];
-    int fda = open(fifoName, O_RDONLY);  // not working very well :/ Is server not writing?
-    read(fda, answer, sizeof(answer));
+    Message answer;
+    int fda = open(fifoName, O_RDONLY);
 
-    char* split = answer;
-    for (int i = 0; i < 4; ++i)
-        split = strtok(split, " ");
-    res = atoi(split);
+    read(fda, &answer, sizeof(answer));
+    res = answer.tskres;
 
     // Delete private info
     close(fda);
     unlink(fifoName);
 
+    pthread_mutex_unlock(&lock);
     return NULL;
 }
