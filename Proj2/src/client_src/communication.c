@@ -79,7 +79,7 @@ void *makeRequest(void* arg) {
         serverClosed = 1;
     // res = answer.tskres;
 
-    // Delete private info
+    // Delete private fifo
     close(fda);
     unlink(fifoName);
 
