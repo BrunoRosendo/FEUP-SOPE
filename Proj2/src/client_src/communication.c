@@ -66,7 +66,6 @@ void *makeRequest(void* arg) {
         printf("Mkfifo error: %d\n", errno);
         exit(2);
     }
-
     // Send request
     write(*fd, &message, sizeof(message));
 
@@ -74,7 +73,11 @@ void *makeRequest(void* arg) {
     Message answer;
     int fda = open(fifoName, O_RDONLY);
 
-    read(fda, &answer, sizeof(answer));
+    read(fda, &answer, sizeof(message));
+
+    // Register Operation
+    registerOperation(&answer, "GOTRS");
+
     if (answer.tskres == -1)
         serverClosed = 1;
     // res = answer.tskres;
@@ -85,4 +88,10 @@ void *makeRequest(void* arg) {
 
     pthread_mutex_unlock(&lock);
     return NULL;
+}
+
+void registerOperation(Message *message, char* oper) {
+    printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
+        message->rid, message->tskload, message->pid,
+            message->tid, message->tskres, oper);
 }

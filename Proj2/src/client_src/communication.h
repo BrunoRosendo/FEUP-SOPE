@@ -20,4 +20,11 @@ Function used by a newborn thread
 */
 void *makeRequest(void* arg);
 
+/**
+ * Registers an operation to the stdout
+ * @param message  
+ * @param oper type of operation
+ */ 
+void registerOperation(Message *message, char* oper);
+
 #endif
