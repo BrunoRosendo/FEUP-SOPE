@@ -1,35 +1,45 @@
 #ifndef AUX_H_
 #define AUX_H_
 
+/* INCLUDES */
+
+// C Libs
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <errno.h>
+
+// System libs
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/syscall.h>
+
+/* CONSTANTS */
 
 #define FIFO_PUBLIC_PERMS 0666
 
+#define SYNC_WAIT_TIME 500
+#define MAX_PATH_SIZE 500
+#define MAX_REQUEST_SIZE 100
+
+/* DATA STRUCTURES */
+
 typedef struct Settings {
-    unsigned execTime;
-    char* fifoname;
+    time_t execTime;
+    char fifoname[MAX_PATH_SIZE];
+    int fd;  // File (fifo) descriptor
 } Settings;
 
-/*
-Makes all the needed operations for the start of the program
-*/
-void init(char* argv[], Settings* settings);
-
-/**
- * Parses the command line arguments and puts the information in
- * the Settings struct
- * @return 0 on success, 1 otherwise
- */ 
-int parseCMDArgs(char* argv[], Settings* settings);
-
-/*
-Creates a FIFO (if it doesn't exist) and waits for the server to synchronize
-*/
-void syncWithServer(Settings* settings);
+typedef struct Message {
+    int rid;        // request id
+    pid_t pid;      // process id
+    pthread_t tid;  // thread id
+    int tskload;   // task load
+    int tskres;    // task result
+} Message;
 
 #endif  // AUX_H_
