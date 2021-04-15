@@ -66,8 +66,13 @@ void *makeRequest(void* arg) {
         printf("Mkfifo error: %d\n", errno);
         exit(2);
     }
+
     // Send request
     write(*fd, &message, sizeof(message));
+
+    // Register Operation
+    registerOperation(message.rid, message.tskload, message.pid,
+        message.tid, message.tskres, CLIENT_WANTS);
 
     // Get answer
     Message answer;
@@ -75,13 +80,18 @@ void *makeRequest(void* arg) {
 
     read(fda, &answer, sizeof(message));
 
-    // Register Operation
-    registerOperation(message.rid, answer.tskload, message.pid, message.tid,
-        answer.tskres, CLIENT_RCVD);
+    if (answer.tskres == -1) {
+        // Register Operation
+        registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
 
-    if (answer.tskres == -1)
         serverClosed = 1;
-    // res = answer.tskres;
+    } else {
+        // Register Operation
+        registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_RCVD);
+    }
+
 
     // Delete private fifo
     close(fda);
