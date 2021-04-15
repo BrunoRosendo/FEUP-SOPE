@@ -76,7 +76,8 @@ void *makeRequest(void* arg) {
     read(fda, &answer, sizeof(message));
 
     // Register Operation
-    registerOperation(&answer, "GOTRS");
+    registerOperation(message.rid, answer.tskload, message.pid, message.tid,
+        answer.tskres, CLIENT_RCVD);
 
     if (answer.tskres == -1)
         serverClosed = 1;
@@ -90,8 +91,8 @@ void *makeRequest(void* arg) {
     return NULL;
 }
 
-void registerOperation(Message *message, char* oper) {
-    printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
-        message->rid, message->tskload, message->pid,
-            message->tid, message->tskres, oper);
+void registerOperation(int rid, int tskload, int pid, pthread_t tid,
+    int tskres, char* oper) {
+        printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
+            rid, tskload, pid, tid, tskres, oper);
 }
