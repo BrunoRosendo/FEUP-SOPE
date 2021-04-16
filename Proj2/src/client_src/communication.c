@@ -70,7 +70,6 @@ void *makeRequest(void* arg) {
     // Send request
     write(*fd, &message, sizeof(message));
 
-    // Register Operation
     registerOperation(message.rid, message.tskload, message.pid,
         message.tid, message.tskres, CLIENT_WANTS);
 
@@ -81,13 +80,11 @@ void *makeRequest(void* arg) {
     read(fda, &answer, sizeof(message));
 
     if (answer.tskres == -1) {
-        // Register Operation
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
 
         serverClosed = 1;
     } else {
-        // Register Operation
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, answer.tskres, CLIENT_RCVD);
     }
