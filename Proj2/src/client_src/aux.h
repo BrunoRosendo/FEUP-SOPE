@@ -28,18 +28,24 @@
 
 /* DATA STRUCTURES */
 
+/**
+ * Keeps the execution time and fifo info
+ */
 typedef struct Settings {
-    time_t execTime;
-    char fifoname[MAX_PATH_SIZE];
-    int fd;  // File (fifo) descriptor
+    time_t execTime; /** Program max execution time*/
+    char fifoname[MAX_PATH_SIZE]; /** Public fifo's name*/
+    int fd;  /** Public fifo's file descriptor */
 } Settings;
 
+/**
+ * Message that is transmited through a fifo
+ */
 typedef struct Message {
-    int rid;        // request id
-    pid_t pid;      // process id
-    pthread_t tid;  // thread id
-    int tskload;   // task load
-    int tskres;    // task result
+    int rid; /** Request id */
+    pid_t pid; /** Process id */
+    pthread_t tid; /** Thread id */
+    int tskload; /** Task load */
+    int tskres; /** Task result */
 } Message;
 
 #endif  // AUX_H_
