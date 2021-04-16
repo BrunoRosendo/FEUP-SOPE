@@ -70,14 +70,25 @@ void *makeRequest(void* arg) {
     // Send request
     write(*fd, &message, sizeof(message));
 
+    registerOperation(message.rid, message.tskload, message.pid,
+        message.tid, message.tskres, CLIENT_WANTS);
+
     // Get answer
     Message answer;
     int fda = open(fifoName, O_RDONLY);
 
-    read(fda, &answer, sizeof(answer));
-    if (answer.tskres == -1)
+    read(fda, &answer, sizeof(message));
+
+    if (answer.tskres == -1) {
+        registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
+
         serverClosed = 1;
-    // res = answer.tskres;
+    } else {
+        registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_RCVD);
+    }
+
 
     // Delete private fifo
     close(fda);
@@ -85,4 +96,10 @@ void *makeRequest(void* arg) {
 
     pthread_mutex_unlock(&lock);
     return NULL;
+}
+
+void registerOperation(int rid, int tskload, int pid, pthread_t tid,
+    int tskres, char* oper) {
+        printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
+            rid, tskload, pid, tid, tskres, oper);
 }

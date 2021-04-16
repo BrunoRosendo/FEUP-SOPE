@@ -20,4 +20,16 @@ Function used by a newborn thread
 */
 void *makeRequest(void* arg);
 
+/**
+ * Registers an operation to the stdout
+ * @param rid 
+ * @param tskload
+ * @param pid
+ * @param tid
+ * @param tskres  
+ * @param oper type of operation
+ */ 
+void registerOperation(int rid, int tskload, int pid, pthread_t tid,
+    int tskres, char* oper);
+
 #endif
