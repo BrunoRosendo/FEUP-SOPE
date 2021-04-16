@@ -39,7 +39,7 @@ void generateRequests(Settings* settings) {
         if (time(NULL) - startTime >= settings->execTime || serverClosed)
             break;
 
-        int waitTime = rand() % 100 + 1;  // milliseconds
+        int waitTime = 1000 * (rand() % 100 + 1);  // milliseconds
         usleep(waitTime);
     }
     pthread_mutex_destroy(&lock);
