@@ -5,6 +5,8 @@ static int requestID = 0;  // this will have to be a mutex/sephamore
 // static int res = -2;
 static int serverClosed = 0;
 pthread_mutex_t lock;
+int fda;
+char fifoName[MAX_PATH_SIZE];
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -42,12 +44,14 @@ void generateRequests(Settings* settings) {
         int waitTime = 1000 * (rand() % 100 + 1);  // milliseconds
         usleep(waitTime);
     }
+
+    killpg(getpid(), SIGUSR1);
     pthread_mutex_destroy(&lock);
 }
 
 void *makeRequest(void* arg) {
     pthread_mutex_lock(&lock);
-
+    subscribeSignal();
     // Get file descriptor
     int *fd = (int *) arg;
 
@@ -60,7 +64,6 @@ void *makeRequest(void* arg) {
     message.tskres = -1;
 
     // Create private fifo
-    char fifoName[MAX_PATH_SIZE];
     snprintf(fifoName, MAX_PATH_SIZE, "/tmp/%d.%lu", message.pid, message.tid);
     if (mkfifo(fifoName, FIFO_PUBLIC_PERMS)) {
         printf("Mkfifo error: %d\n", errno);
@@ -75,7 +78,7 @@ void *makeRequest(void* arg) {
 
     // Get answer
     Message answer;
-    int fda = open(fifoName, O_RDONLY);
+    fda = open(fifoName, O_RDONLY);
 
     read(fda, &answer, sizeof(message));
 
@@ -91,10 +94,7 @@ void *makeRequest(void* arg) {
 
 
     // Delete private fifo
-    close(fda);
-    unlink(fifoName);
-
-    pthread_mutex_unlock(&lock);
+    exitThread();
     return NULL;
 }
 
@@ -102,4 +102,29 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper) {
         printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
             rid, tskload, pid, tid, tskres, oper);
+}
+
+void subscribeSignal(){
+    struct sigaction newInt, oldInt;
+    sigset_t smask;
+
+    if (sigemptyset(&smask) == -1) {
+        perror("sigset failed\n");
+        exit(5);
+    }
+    newInt.sa_handler = exitThread;
+    newInt.sa_mask = smask;
+    newInt.sa_flags = 0;
+    if (sigaction(SIGUSR1, &newInt, &oldInt) == -1) {
+        perror("sigaction failed\n");
+        exit(5);
+    }
+}
+
+void exitThread(){
+    // Delete private fifo
+    close(fda);
+    unlink(fifoName);
+
+    pthread_mutex_unlock(&lock);
 }

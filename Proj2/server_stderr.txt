@@ -1,0 +1,1 @@
+script.sh: 51: ./s: not found
