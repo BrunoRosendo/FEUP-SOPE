@@ -41,6 +41,11 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
 void subscribeSignal();
 
 /**
+ * Handler for when the parent thread exit after the client execution time has been exceeded
+ */
+void sigHandler();
+
+/**
  * Closes the fifo and frees resources after the client has stopped functioning
  */
 void exitThread();

@@ -7,6 +7,7 @@ static int serverClosed = 0;
 pthread_mutex_t lock;
 int fda;
 char fifoName[MAX_PATH_SIZE];
+Message message, answer;
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -56,7 +57,6 @@ void *makeRequest(void* arg) {
     int *fd = (int *) arg;
 
     // Build message struct
-    Message message;
     message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
     message.pid = getpid();
@@ -77,7 +77,6 @@ void *makeRequest(void* arg) {
         message.tid, message.tskres, CLIENT_WANTS);
 
     // Get answer
-    Message answer;
     fda = open(fifoName, O_RDONLY);
 
     read(fda, &answer, sizeof(message));
@@ -112,7 +111,7 @@ void subscribeSignal(){
         perror("sigset failed\n");
         exit(5);
     }
-    newInt.sa_handler = exitThread;
+    newInt.sa_handler = sigHandler;
     newInt.sa_mask = smask;
     newInt.sa_flags = 0;
     if (sigaction(SIGUSR1, &newInt, &oldInt) == -1) {
@@ -121,6 +120,11 @@ void subscribeSignal(){
     }
 }
 
+void sigHandler(){
+    registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
+    exitThread();
+}
 void exitThread(){
     // Delete private fifo
     close(fda);
