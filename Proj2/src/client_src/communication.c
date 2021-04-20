@@ -5,9 +5,8 @@ static int requestID = 0;  // this will have to be a mutex/sephamore
 // static int res = -2;
 static int serverClosed = 0;
 pthread_mutex_t lock;
-int fda;
-char fifoName[MAX_PATH_SIZE];
-Message message, answer;
+int fda[100];
+int pids[100];
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -23,6 +22,14 @@ void syncWithServer(Settings* settings) {
     */
     settings->fd = open(settings->fifoname, O_WRONLY);
     printf("Server synchronized with success\n");
+    
+    //Initialize file descriptors that might or might not be used
+    for(int i = 0; i < 100; i++){
+        fda[i] = -1;
+    }
+    for(int i = 0; i < 100; i++){
+        pids[i] = -1;
+    }
 }
 
 void generateRequests(Settings* settings) {
@@ -47,6 +54,13 @@ void generateRequests(Settings* settings) {
     }
 
     killpg(getpid(), SIGUSR1);
+    for(int i =0 ; i < 100; i ++){
+        if(fda[i] != -1){
+            close(fda[i]);
+            fda[i] = -1;
+        }
+    }
+
     pthread_mutex_destroy(&lock);
 }
 
@@ -57,6 +71,8 @@ void *makeRequest(void* arg) {
     int *fd = (int *) arg;
 
     // Build message struct
+    
+    Message message;
     message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
     message.pid = getpid();
@@ -64,6 +80,8 @@ void *makeRequest(void* arg) {
     message.tskres = -1;
 
     // Create private fifo
+    
+    char fifoName[MAX_PATH_SIZE];
     snprintf(fifoName, MAX_PATH_SIZE, "/tmp/%d.%lu", message.pid, message.tid);
     if (mkfifo(fifoName, FIFO_PUBLIC_PERMS)) {
         printf("Mkfifo error: %d\n", errno);
@@ -77,23 +95,42 @@ void *makeRequest(void* arg) {
         message.tid, message.tskres, CLIENT_WANTS);
 
     // Get answer
-    fda = open(fifoName, O_RDONLY);
-
-    read(fda, &answer, sizeof(message));
-
-    if (answer.tskres == -1) {
-        registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
-
-        serverClosed = 1;
-    } else {
-        registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_RCVD);
+    Message answer;
+    int pos = 0;
+    while(pos < 100){
+        if(fda[pos]==-1){
+            break;
+        }
+        pos++;
+    }
+    if(pos == 100){
+        exit(1);
     }
 
+    fda[pos] = open(fifoName, O_RDONLY);
+    if( read(fda[pos], &answer, sizeof(message) >= 0)){
+        if (answer.tskres == -1) {
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
 
-    // Delete private fifo
-    exitThread();
+            serverClosed = 1;
+        } else {
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, answer.tskres, CLIENT_RCVD);
+        }
+        
+        // Delete private fifo
+        close(fda[pos]);
+        fda[pos] = -1;
+    }
+    else{
+        //Error - The fifo was closed
+        registerOperation(message.rid, message.tskload, message.pid,
+            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
+    }
+
+    unlink(fifoName);
+    pthread_mutex_unlock(&lock);
     return NULL;
 }
 
@@ -121,14 +158,8 @@ void subscribeSignal(){
 }
 
 void sigHandler(){
-    registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
-    exitThread();
-}
-void exitThread(){
-    // Delete private fifo
-    close(fda);
-    unlink(fifoName);
-
-    pthread_mutex_unlock(&lock);
+    // // Delete private fifo
+    // close(fda);
+    // // fda[pos] = -1;
+    // // unlink(fifoName);
 }
