@@ -35,19 +35,4 @@ void *makeRequest(void* arg);
 void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper);
 
-/**
- * Subscribes signals to be notified when the client has stopped waiting for answers
- */
-void subscribeSignal();
-
-/**
- * Handler for when the parent thread exit after the client execution time has been exceeded
- */
-void sigHandler();
-
-/**
- * Closes the fifo and frees resources after the client has stopped functioning
- */
-void exitThread();
-
 #endif

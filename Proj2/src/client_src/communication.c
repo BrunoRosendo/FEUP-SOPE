@@ -4,9 +4,9 @@ static time_t startTime;
 static int requestID = 0;  // this will have to be a mutex/sephamore
 // static int res = -2;
 static int serverClosed = 0;
+static int clientClosed = 0;
 pthread_mutex_t lock;
-int fda[100];
-int pids[100];
+int fda;
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -22,14 +22,7 @@ void syncWithServer(Settings* settings) {
     */
     settings->fd = open(settings->fifoname, O_WRONLY);
     printf("Server synchronized with success\n");
-    
-    //Initialize file descriptors that might or might not be used
-    for(int i = 0; i < 100; i++){
-        fda[i] = -1;
-    }
-    for(int i = 0; i < 100; i++){
-        pids[i] = -1;
-    }
+
 }
 
 void generateRequests(Settings* settings) {
@@ -54,11 +47,12 @@ void generateRequests(Settings* settings) {
     }
 
     killpg(getpid(), SIGUSR1);
-    for(int i =0 ; i < 100; i ++){
-        if(fda[i] != -1){
-            close(fda[i]);
-            fda[i] = -1;
-        }
+    clientClosed = 1;
+
+    //Closes all opened file descriptors
+    int n = sysconf(_SC_OPEN_MAX);
+    for(int i = 3; i < n; i++){
+        close(i);
     }
 
     pthread_mutex_destroy(&lock);
@@ -96,19 +90,10 @@ void *makeRequest(void* arg) {
 
     // Get answer
     Message answer;
-    int pos = 0;
-    while(pos < 100){
-        if(fda[pos]==-1){
-            break;
-        }
-        pos++;
-    }
-    if(pos == 100){
-        exit(1);
-    }
 
-    fda[pos] = open(fifoName, O_RDONLY);
-    if( read(fda[pos], &answer, sizeof(message) >= 0)){
+
+    fda = open(fifoName, O_RDONLY);
+    if( read(fda, &answer, sizeof(message) >= 0)){
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
                 message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
@@ -120,13 +105,19 @@ void *makeRequest(void* arg) {
         }
         
         // Delete private fifo
-        close(fda[pos]);
-        fda[pos] = -1;
+        close(fda);
     }
     else{
-        //Error - The fifo was closed
+        //Error
+        if(clientClosed){
+            //The fifo was closed in the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
+        }
+        else{
+            //There was another error
+            exit(1);
+        }
     }
 
     unlink(fifoName);
