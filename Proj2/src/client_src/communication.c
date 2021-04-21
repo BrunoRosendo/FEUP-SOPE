@@ -1,8 +1,7 @@
 #include "communication.h"
 
 static time_t startTime;
-static int requestID = 0;  // this will have to be a mutex/sephamore
-// static int res = -2;
+static int requestID = 0;
 static int serverClosed = 0;
 static int clientClosed = 0;
 pthread_mutex_t lock;
@@ -49,9 +48,9 @@ void generateRequests(Settings* settings) {
     killpg(getpid(), SIGUSR1);
     clientClosed = 1;
 
-    //Closes all opened file descriptors
+    // Closes all opened file descriptors
     int n = sysconf(_SC_OPEN_MAX);
-    for(int i = 3; i < n; i++){
+    for (int i = 3; i < n; i++) {
         close(i);
     }
 
@@ -65,7 +64,7 @@ void *makeRequest(void* arg) {
     int *fd = (int *) arg;
 
     // Build message struct
-    
+
     Message message;
     message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
@@ -74,7 +73,7 @@ void *makeRequest(void* arg) {
     message.tskres = -1;
 
     // Create private fifo
-    
+
     char fifoName[MAX_PATH_SIZE];
     snprintf(fifoName, MAX_PATH_SIZE, "/tmp/%d.%lu", message.pid, message.tid);
     if (mkfifo(fifoName, FIFO_PUBLIC_PERMS)) {
@@ -91,9 +90,8 @@ void *makeRequest(void* arg) {
     // Get answer
     Message answer;
 
-
     fda = open(fifoName, O_RDONLY);
-    if( read(fda, &answer, sizeof(message) >= 0)){
+    if (read(fda, &answer, sizeof(message) >= 0)) {
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
                 message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
@@ -103,22 +101,19 @@ void *makeRequest(void* arg) {
             registerOperation(message.rid, message.tskload, message.pid,
                 message.tid, answer.tskres, CLIENT_RCVD);
         }
-        
         // Delete private fifo
         close(fda);
-    }
-    else{
-        //Error
-        if(clientClosed){
-            //The fifo was closed in the end of the program
+
+    // Error
+    } else if (clientClosed) {
+        // The fifo was closed at the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
-        }
-        else{
-            //There was another error
-            exit(1);
-        }
+    } else {
+        // There was another error
+        exit(1);
     }
+
 
     unlink(fifoName);
     pthread_mutex_unlock(&lock);
@@ -131,7 +126,7 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
             rid, tskload, pid, tid, tskres, oper);
 }
 
-void subscribeSignal(){
+void subscribeSignal() {
     struct sigaction newInt, oldInt;
     sigset_t smask;
 
@@ -148,7 +143,7 @@ void subscribeSignal(){
     }
 }
 
-void sigHandler(){
+void sigHandler() {
     // // Delete private fifo
     // close(fda);
     // // fda[pos] = -1;
