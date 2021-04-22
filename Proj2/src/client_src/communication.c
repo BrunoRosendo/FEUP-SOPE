@@ -1,9 +1,9 @@
 #include "communication.h"
 
 static time_t startTime;
-static int requestID = 0;  // this will have to be a mutex/sephamore
-// static int res = -2;
+static int requestID = 0;
 static int serverClosed = 0;
+static int clientClosed = 0;
 pthread_mutex_t lock;
 
 void syncWithServer(Settings* settings) {
@@ -20,6 +20,7 @@ void syncWithServer(Settings* settings) {
     */
     settings->fd = open(settings->fifoname, O_WRONLY);
     printf("Server synchronized with success\n");
+
 }
 
 void generateRequests(Settings* settings) {
@@ -42,6 +43,14 @@ void generateRequests(Settings* settings) {
         int waitTime = 1000 * (rand() % 100 + 1);  // milliseconds
         usleep(waitTime);
     }
+
+    // Closes all opened file descriptors    
+    clientClosed = 1;
+    int n = sysconf(_SC_OPEN_MAX);
+    for (int i = 3; i < n; i++) {
+        close(i);
+    }
+
     pthread_mutex_destroy(&lock);
 }
 
@@ -60,6 +69,7 @@ void *makeRequest(void* arg) {
     message.tskres = -1;
 
     // Create private fifo
+
     char fifoName[MAX_PATH_SIZE];
     snprintf(fifoName, MAX_PATH_SIZE, "/tmp/%d.%lu", message.pid, message.tid);
     if (mkfifo(fifoName, FIFO_PUBLIC_PERMS)) {
@@ -75,25 +85,35 @@ void *makeRequest(void* arg) {
 
     // Get answer
     Message answer;
+
     int fda = open(fifoName, O_RDONLY);
+    if (read(fda, &answer, sizeof(message) >= 0)) {
+        if (answer.tskres == -1) {
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
 
-    read(fda, &answer, sizeof(message));
+            serverClosed = 1;
+        } else {
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, answer.tskres, CLIENT_RCVD);
+        }
+        // Delete private fifo
+        close(fda);
 
-    if (answer.tskres == -1) {
+    // Error
+    } else if (clientClosed) {
+        // The fifo was closed at the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
-
-        serverClosed = 1;
+            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
     } else {
-        registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_RCVD);
+        // There was another error
+        fprintf(stderr,
+                "Unexpected error while reading from private fifo %s",
+                fifoName);
+        exit(1);
     }
 
-
-    // Delete private fifo
-    close(fda);
     unlink(fifoName);
-
     pthread_mutex_unlock(&lock);
     return NULL;
 }
