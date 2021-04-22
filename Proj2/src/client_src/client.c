@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     }
 
     Settings settings;
-    if( init(argv, &settings) == 1){
+    if (init(argv, &settings) == 1) {
         return 1;
     }
     generateRequests(&settings);

@@ -6,13 +6,8 @@ static int serverClosed = 0;
 static int clientClosed = 0;
 pthread_mutex_t lock;
 
-int syncWithServer(Settings* settings) {   /* METER ISTO BOOLEANO */
+int syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
-    /*
-    if (mkfifo(settings->fifoname, FIFO_PUBLIC_PERMS) && errno != EEXIST) {
-        printf("Mkfifo error: %d\n", errno);
-        exit(2);
-    }*/
 
     printf("Synchronizing with server...\n");
     /*
@@ -20,9 +15,13 @@ int syncWithServer(Settings* settings) {   /* METER ISTO BOOLEANO */
         Client sends the requests here and receives answers in private fifos
     */
     int currAttempt = 0;
-    int maxAttempts = MAX_TIME_WAITING_FIFO * (MICRO_TO_SECOND / TIME_BETWEEN_ATTEMPTS_FIFO);  /* CRIAR VARIAVEIS (DEFINE) */
-    while( (settings->fd = open(settings->fifoname, O_WRONLY, O_NONBLOCK) ) == -1){     // Open fifo in nonblocking mode so that it fails if still not created
-        if(currAttempt > maxAttempts){
+    int maxAttempts = MAX_TIME_WAITING_FIFO *
+        (MICRO_TO_SECOND / TIME_BETWEEN_ATTEMPTS_FIFO);
+
+    // Open fifo in nonblocking mode so that it fails if still not created
+    while ( (settings->fd =
+        open(settings->fifoname, O_WRONLY, O_NONBLOCK) ) == -1) {
+        if (currAttempt > maxAttempts) {
             printf("The max waiting time has been exceeded\n");
             return 1;
         }
