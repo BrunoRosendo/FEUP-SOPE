@@ -1,11 +1,12 @@
 #include "client.h"
 
-void init(char* argv[], Settings* settings) {
+int init(char* argv[], Settings* settings) {
     if (parseCMDArgs(argv, settings))
         exit(1);
 
-    syncWithServer(settings);
     srand(time(NULL));
+
+    return syncWithServer(settings);
 }
 
 void exitProgram(Settings* settings) {
@@ -21,7 +22,9 @@ int main(int argc, char *argv[]) {
     }
 
     Settings settings;
-    init(argv, &settings);
+    if( init(argv, &settings) == 1){
+        return 1;
+    }
     generateRequests(&settings);
     exitProgram(&settings);
     return 0;
