@@ -1,7 +1,6 @@
 #ifndef COMM_H_
 #define COMM_H_
 
-#include <signal.h>
 #include "aux.h"
 
 /**

@@ -6,7 +6,6 @@ static int requestID = 0;  // this will have to be a mutex/sephamore
 static int serverClosed = 0;
 static int clientClosed = 0;
 pthread_mutex_t lock;
-int fda;
 
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
@@ -46,10 +45,8 @@ void generateRequests(Settings* settings) {
         usleep(waitTime);
     }
 
-    killpg(getpid(), SIGUSR1);
+    //Closes all opened file descriptors    
     clientClosed = 1;
-
-    //Closes all opened file descriptors
     int n = sysconf(_SC_OPEN_MAX);
     for(int i = 3; i < n; i++){
         close(i);
@@ -60,12 +57,11 @@ void generateRequests(Settings* settings) {
 
 void *makeRequest(void* arg) {
     pthread_mutex_lock(&lock);
-    subscribeSignal();
+
     // Get file descriptor
     int *fd = (int *) arg;
 
     // Build message struct
-    
     Message message;
     message.tid = pthread_self();  // or syscall(SYS_gettid) ?
     message.rid = requestID++;
@@ -92,7 +88,7 @@ void *makeRequest(void* arg) {
     Message answer;
 
 
-    fda = open(fifoName, O_RDONLY);
+    int fda = open(fifoName, O_RDONLY);
     if( read(fda, &answer, sizeof(message) >= 0)){
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
@@ -116,6 +112,7 @@ void *makeRequest(void* arg) {
         }
         else{
             //There was another error
+            fprintf(stderr, "Unexpected error while reading from private fifo %s", fifoName);
             exit(1);
         }
     }
@@ -129,28 +126,4 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper) {
         printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
             rid, tskload, pid, tid, tskres, oper);
-}
-
-void subscribeSignal(){
-    struct sigaction newInt, oldInt;
-    sigset_t smask;
-
-    if (sigemptyset(&smask) == -1) {
-        perror("sigset failed\n");
-        exit(5);
-    }
-    newInt.sa_handler = sigHandler;
-    newInt.sa_mask = smask;
-    newInt.sa_flags = 0;
-    if (sigaction(SIGUSR1, &newInt, &oldInt) == -1) {
-        perror("sigaction failed\n");
-        exit(5);
-    }
-}
-
-void sigHandler(){
-    // // Delete private fifo
-    // close(fda);
-    // // fda[pos] = -1;
-    // // unlink(fifoName);
 }
