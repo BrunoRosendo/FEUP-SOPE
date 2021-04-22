@@ -44,7 +44,7 @@ void generateRequests(Settings* settings) {
         usleep(waitTime);
     }
 
-    //Closes all opened file descriptors    
+    // Closes all opened file descriptors    
     clientClosed = 1;
     int n = sysconf(_SC_OPEN_MAX);
     for (int i = 3; i < n; i++) {
@@ -86,9 +86,8 @@ void *makeRequest(void* arg) {
     // Get answer
     Message answer;
 
-
     int fda = open(fifoName, O_RDONLY);
-    if( read(fda, &answer, sizeof(message) >= 0)){
+    if (read(fda, &answer, sizeof(message) >= 0)) {
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
                 message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
@@ -106,14 +105,13 @@ void *makeRequest(void* arg) {
         // The fifo was closed at the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
-        }
-        else{
-            //There was another error
-            fprintf(stderr, "Unexpected error while reading from private fifo %s", fifoName);
-            exit(1);
-        }
+    } else {
+        // There was another error
+        fprintf(stderr,
+                "Unexpected error while reading from private fifo %s",
+                fifoName);
+        exit(1);
     }
-
 
     unlink(fifoName);
     pthread_mutex_unlock(&lock);
