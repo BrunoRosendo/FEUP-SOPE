@@ -6,7 +6,7 @@ static int serverClosed = 0;
 static int clientClosed = 0;
 pthread_mutex_t lock;
 
-int syncWithServer(Settings* settings) {
+void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
 
     printf("Synchronizing with server...\n");
@@ -29,7 +29,6 @@ int syncWithServer(Settings* settings) {
     }
 
     printf("Server synchronized with success\n");
-    return 0;
 }
 
 void generateRequests(Settings* settings) {

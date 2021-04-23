@@ -1,6 +1,6 @@
 #include "client.h"
 
-int init(char* argv[], Settings* settings) {
+void init(char* argv[], Settings* settings) {
     if (parseCMDArgs(argv, settings))
         exit(1);
 

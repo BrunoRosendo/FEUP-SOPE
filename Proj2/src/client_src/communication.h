@@ -6,9 +6,8 @@
 /**
  * Creates a FIFO (if it doesn't exist) and waits for the server to synchronize
  * @param settings Keeps the fifo name that is to be created
- * @return 0 upon success, 1 otherwise
 */
-int syncWithServer(Settings* settings);
+void syncWithServer(Settings* settings);
 
 /**
  * Main loop of the program. Generates threads which make requests to the server
