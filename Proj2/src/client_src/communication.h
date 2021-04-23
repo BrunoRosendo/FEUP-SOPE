@@ -10,6 +10,17 @@
 void syncWithServer(Settings* settings);
 
 /**
+ * Closes the file descriptors (fifos) used by all the threads
+ */
+void closeAllFifos();
+
+/**
+ * Waits for all the created threads to finish their tasks. Also frees the threads array
+ * @param numThreads Index of the last created thread
+ */
+void waitForAllThreads(int lastThread);
+
+/**
  * Main loop of the program. Generates threads which make requests to the server
  * Terminates the program when the execution time is due
  * @param settings Information kept for the production of the requests
