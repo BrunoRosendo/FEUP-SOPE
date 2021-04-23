@@ -95,6 +95,12 @@ void *makeRequest(void* arg) {
     message.tskload = rand() % 9 + 1;
     message.tskres = -1;
 
+    // The server has closed and client already closed all fifos
+    if (clientClosed) {
+        pthread_mutex_unlock(&lock);
+        return NULL;
+    }
+
     // Create private fifo
 
     char fifoName[MAX_PATH_SIZE];
@@ -117,7 +123,7 @@ void *makeRequest(void* arg) {
     if (read(fda, &answer, sizeof(message)) >= 0) {
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
-                message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
+                message.tid, -1, CLIENT_REQUEST_CLOSED);
 
             serverClosed = 1;
         } else {
@@ -131,7 +137,7 @@ void *makeRequest(void* arg) {
     } else if (clientClosed) {
         // The fifo was closed at the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
+            message.tid, -1, CLIENT_REQUEST_TIMEOUT);
     } else {
         // There was another error
         fprintf(stderr,
