@@ -4,9 +4,9 @@ int init(char* argv[], Settings* settings) {
     if (parseCMDArgs(argv, settings))
         exit(1);
 
-    srand(time(NULL));
+    syncWithServer(settings);
 
-    return syncWithServer(settings);
+    srand(time(NULL));
 }
 
 void exitProgram(Settings* settings) {
@@ -22,10 +22,11 @@ int main(int argc, char *argv[]) {
     }
 
     Settings settings;
-    if (init(argv, &settings) == 1) {
-        return 1;
-    }
+    init(argv, &settings);
+
     generateRequests(&settings);
+
     exitProgram(&settings);
+
     return 0;
 }

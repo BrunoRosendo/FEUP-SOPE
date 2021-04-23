@@ -28,7 +28,6 @@
 
 // Time variables
 #define MAX_TIME_WAITING_FIFO 30
-#define MICRO_TO_SECOND 1000000
 #define TIME_BETWEEN_ATTEMPTS_FIFO 5000
 
 // Client request thread makes initial request

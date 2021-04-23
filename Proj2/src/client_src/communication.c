@@ -14,24 +14,21 @@ int syncWithServer(Settings* settings) {
         The client is blocked until the server opens the public fifo as RONLY
         Client sends the requests here and receives answers in private fifos
     */
-    int currAttempt = 0;
-    int maxAttempts = MAX_TIME_WAITING_FIFO *
-        (MICRO_TO_SECOND / TIME_BETWEEN_ATTEMPTS_FIFO);
+
+    time_t start = time(NULL);  // time in seconds
 
     // Open fifo in nonblocking mode so that it fails if still not created
     while ( (settings->fd =
         open(settings->fifoname, O_WRONLY, O_NONBLOCK) ) == -1) {
-        if (currAttempt > maxAttempts) {
+        if (time(NULL) - start > MAX_TIME_WAITING_FIFO) {
             printf("The max waiting time has been exceeded\n");
-            return 1;
+            exit(1);
         }
-        printf("Fifo is still not created\n");
 
         usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
-        currAttempt++;
     }
-    printf("Server synchronized with success\n");
 
+    printf("Server synchronized with success\n");
     return 0;
 }
 
@@ -56,7 +53,7 @@ void generateRequests(Settings* settings) {
         usleep(waitTime);
     }
 
-    // Closes all opened file descriptors    
+    // Closes all opened file descriptors
     clientClosed = 1;
     int n = sysconf(_SC_OPEN_MAX);
     for (int i = 3; i < n; i++) {
@@ -99,7 +96,7 @@ void *makeRequest(void* arg) {
     Message answer;
 
     int fda = open(fifoName, O_RDONLY);
-    if (read(fda, &answer, sizeof(message) >= 0)) {
+    if (read(fda, &answer, sizeof(message)) >= 0) {
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
                 message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
