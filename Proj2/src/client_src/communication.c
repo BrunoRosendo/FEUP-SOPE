@@ -53,7 +53,7 @@ void generateRequests(Settings* settings) {
     time(&startTime);  // sets the start of the requests
 
     if (pthread_mutex_init(&lock, NULL)) {
-        fprintf(stderr, "Erros initializing mutex\n");
+        fprintf(stderr, "Error initializing mutex\n");
         exit(3);
     }
     threads = (pthread_t*) malloc(sizeof(pthread_t));
