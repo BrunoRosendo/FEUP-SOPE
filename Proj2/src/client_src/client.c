@@ -5,6 +5,7 @@ void init(char* argv[], Settings* settings) {
         exit(1);
 
     syncWithServer(settings);
+
     srand(time(NULL));
 }
 
@@ -22,7 +23,10 @@ int main(int argc, char *argv[]) {
 
     Settings settings;
     init(argv, &settings);
+
     generateRequests(&settings);
+
     exitProgram(&settings);
+
     return 0;
 }

@@ -26,6 +26,10 @@
 #define MAX_PATH_SIZE 500
 #define MAX_REQUEST_SIZE 100
 
+// Time variables
+#define MAX_TIME_WAITING_FIFO 30
+#define TIME_BETWEEN_ATTEMPTS_FIFO 5000
+
 // Client request thread makes initial request
 #define CLIENT_WANTS "IWANT"
 // Main Server thread received the request
