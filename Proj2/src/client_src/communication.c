@@ -4,6 +4,8 @@ static time_t startTime;
 static int requestID = 0;
 static int serverClosed = 0;
 static int clientClosed = 0;
+
+static pthread_t *threads;
 pthread_mutex_t lock;
 
 void syncWithServer(Settings* settings) {
@@ -29,36 +31,53 @@ void syncWithServer(Settings* settings) {
     }
 
     fprintf(stderr, "Server synchronized with success\n");
+    settings->fd = open(settings->fifoname, O_WRONLY);
+    printf("Server synchronized with success\n");
+}
+
+void closeAllFifos() {
+    clientClosed = 1;
+    int n = sysconf(_SC_OPEN_MAX);
+    for (int i = 3; i < n; i++) {
+        close(i);
+    }
+}
+
+void waitForAllThreads(int lastThread) {
+    for (int i = 0; i <= lastThread; ++i)
+        pthread_join(threads[i], NULL);
+    free(threads);
 }
 
 void generateRequests(Settings* settings) {
     time(&startTime);  // sets the start of the requests
 
     if (pthread_mutex_init(&lock, NULL)) {
-        fprintf(stderr, "Erros initializing mutex\n");
+        fprintf(stderr, "Error initializing mutex\n");
         exit(3);
     }
+    threads = (pthread_t*) malloc(sizeof(pthread_t));
 
+    int i = 0;
     while (1) {
-        pthread_t tid;
-        pthread_create(&tid, NULL, makeRequest, (void*)&settings->fd);
-        // by detatching, the thread joins when it terminates
-        pthread_detach(tid);
+        pthread_create(&threads[i], NULL, makeRequest, (void*)&settings->fd);
 
-        if (time(NULL) - startTime >= settings->execTime || serverClosed)
+        if (time(NULL) - startTime >= settings->execTime)
             break;
+
+        if (serverClosed) {
+            closeAllFifos();
+            break;
+        }
+
+        ++i;
+        threads = (pthread_t*) realloc(threads, (i + 1) * sizeof(pthread_t));
 
         int waitTime = 1000 * (rand() % 100 + 1);  // milliseconds
         usleep(waitTime);
     }
 
-    // Closes all opened file descriptors
-    clientClosed = 1;
-    int n = sysconf(_SC_OPEN_MAX);
-    for (int i = 3; i < n; i++) {
-        close(i);
-    }
-
+    waitForAllThreads(i);
     pthread_mutex_destroy(&lock);
 }
 
@@ -75,6 +94,12 @@ void *makeRequest(void* arg) {
     message.pid = getpid();
     message.tskload = rand() % 9 + 1;
     message.tskres = -1;
+
+    // The server has closed and client already closed all fifos
+    if (clientClosed) {
+        pthread_mutex_unlock(&lock);
+        return NULL;
+    }
 
     // Create private fifo
 
@@ -98,7 +123,7 @@ void *makeRequest(void* arg) {
     if (read(fda, &answer, sizeof(message)) >= 0) {
         if (answer.tskres == -1) {
             registerOperation(message.rid, message.tskload, message.pid,
-                message.tid, answer.tskres, CLIENT_REQUEST_CLOSED);
+                message.tid, -1, CLIENT_REQUEST_CLOSED);
 
             serverClosed = 1;
         } else {
@@ -112,7 +137,7 @@ void *makeRequest(void* arg) {
     } else if (clientClosed) {
         // The fifo was closed at the end of the program
         registerOperation(message.rid, message.tskload, message.pid,
-            message.tid, answer.tskres, CLIENT_REQUEST_TIMEOUT);
+            message.tid, -1, CLIENT_REQUEST_TIMEOUT);
     } else {
         // There was another error
         fprintf(stderr,

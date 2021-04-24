@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS = -Wall -Wextra
 LIBS = -pthread
 
-SERVER_SRC = server_src/server.c server_src/delay.c server_src/delay.h server_src/lib.c
+SERVER_SRC = server_src/server.c server_src/delay.c server_src/lib.c
 CLIENT_SRC = client_src/client.c client_src/parsing.c client_src/communication.c
 
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
@@ -26,16 +26,16 @@ clean:
 	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o
 
 
-# MAKEFILE FORNECIDO (depois guardamos noutro lugar)
+# MAKEFILE FORNECIDO
 #all: s c
 
 #s: server.o lib.o delay.c delay.h
 #	gcc -Wall -DDELAY=0 -o s delay.c lib.o server.o -pthread
 
-#c: client.c aux.c aux.h
-#	gcc -Wall -o c client.c aux.c -pthread
+#c: client.c common.h
+#	gcc -Wall -o c client.c -pthread
 
-# server.o: server.c
+# server.o: server.c common.h
 # 	gcc -Wall -c -o server.o server.c
 
 # lib.o: lib.c lib.h
