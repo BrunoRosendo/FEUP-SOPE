@@ -9,7 +9,7 @@ pthread_mutex_t lock;
 void syncWithServer(Settings* settings) {
     // There's an error if the server already created the FIFO
 
-    printf("Synchronizing with server...\n");
+    fprintf(stderr, "Synchronizing with server...\n");
     /*
         The client is blocked until the server opens the public fifo as RONLY
         Client sends the requests here and receives answers in private fifos
@@ -21,14 +21,14 @@ void syncWithServer(Settings* settings) {
     while ( (settings->fd =
         open(settings->fifoname, O_WRONLY, O_NONBLOCK) ) == -1) {
         if (time(NULL) - start > MAX_TIME_WAITING_FIFO) {
-            printf("The max waiting time has been exceeded\n");
+            fprintf(stderr, "The max waiting time has been exceeded\n");
             exit(1);
         }
 
         usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
     }
 
-    printf("Server synchronized with success\n");
+    fprintf(stderr, "Server synchronized with success\n");
 }
 
 void generateRequests(Settings* settings) {
