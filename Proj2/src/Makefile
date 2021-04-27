@@ -17,7 +17,7 @@ all: $(SERVER_EXEC) $(CLIENT_EXEC)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SERVER_EXEC): $(SERVER_OBJ)
-	$(CC) $(CFLAGS) -o $@ $(SERVER_OBJ) $(LIBS)
+	$(CC) $(CFLAGS) -DDELAY=100 -o $@ $(SERVER_OBJ) $(LIBS)
 
 $(CLIENT_EXEC): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJ) $(LIBS)
@@ -30,14 +30,14 @@ clean:
 #all: s c
 
 #s: server.o lib.o delay.c delay.h
-#	gcc -Wall -DDELAY=0 -o s delay.c lib.o server.o -pthread
+#	gcc -Wall -DDELAY=100 -o s delay.c lib.o server.o -pthread
 
 #c: client.c common.h
 #	gcc -Wall -o c client.c -pthread
 
 # server.o: server.c common.h
 # 	gcc -Wall -c -o server.o server.c
-
+#
 # lib.o: lib.c lib.h
 # 	gcc -Wall -c -o lib.o lib.c
 
