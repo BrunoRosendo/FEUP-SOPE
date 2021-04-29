@@ -1,7 +1,6 @@
 # **Application Server**
 
-// ENGLISH VERSION
-For this project's second part, the main goal is to create an appication able to manage and execute orders between a client and a server. 
+For this project's second part, the main goal is to create an application able to manage and execute orders between a client and a server. 
 So, in order to accomplish this task, we needed to use multithreaded programms and FIFOs, and to avoid conflicts between the entities envolved.
 This way, client C's ordered tasks are are calculated on a library B (extern), executed by a server S which accepts those orders and returns their results.
 Firstly, at an initial stage, it was intended to work with a Client C component, assuming that the server (FIFO) is already implemented. Therefore, taks's orders are sent to that server by a process (multithread) and saved on a queue until it is their turn. Then, they are transfered to B and their results are stored in a buffer. Consider that this buffer works as a warehouse, monitorized by a consumer thread, which sends the results, one by one, to C.
