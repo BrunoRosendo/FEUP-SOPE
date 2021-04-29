@@ -31,8 +31,6 @@ void syncWithServer(Settings* settings) {
     }
 
     fprintf(stderr, "Server synchronized with success\n");
-    settings->fd = open(settings->fifoname, O_WRONLY);
-    printf("Server synchronized with success\n");
 }
 
 void closeAllFifos() {
