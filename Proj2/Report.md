@@ -2,17 +2,9 @@
 
 // ENGLISH VERSION
 For this project's second part, the main goal is to create an appication able to manage and execute orders between a client and a server. 
-So, in order to accomplish this task, multithread programms, FIFOs and avoiding conflicts between the envolved entities were needed.
-This way, client C's ordered tasks are executed by a code on a library B (extern), and a server S (multithread) which accepts those orders and returns their results.
+So, in order to accomplish this task, we needed to use multithreaded programms and FIFOs, and to avoid conflicts between the entities envolved.
+This way, client C's ordered tasks are are calculated on a library B (extern), executed by a server S which accepts those orders and returns their results.
 Firstly, at an initial stage, it was intended to work with a Client C component, assuming that the server (FIFO) is already implemented. Therefore, taks's orders are sent to that server by a process (multithread) and saved on a queue until it is their turn. Then, they are transfered to B and their results are stored in a buffer. Consider that this buffer works as a warehouse, monitorized by a consumer thread, which sends the results, one by one, to C.
-
-// VERSÃO EM PORTUGUÊS
-Para a segunda entrega do projeto de SOPE (Sistemas Operativos), o objetivo é criar uma aplicação capaz de gerir e executar pedidos de excecução entre um cliente e um servidor. Com efeito, foi necessário recorrer a programas multithread, promover a intercomunicação entre processos através de FIFOs e evitar conflitos entre as entidades envolvidas atrvés de mecanismos de sincronização. 
-
-Deste modo, as tarefas pedidas pelo cliente C são executadas por um código numa biblioteca B (externa) e um servidor S (multithread) que gere esses mesmos pedidos e devolve os resultados. 
-
-Numa primeira fase, pretende-se trabalhar com o componente "Cliente", assumindo que já existe um servidor implemenado (FIFO). Assim, os pedidos de tarefas são enviados para S por um processo C (multithread), ficando armazenados numa fila até serem requisitados e enviados para B, e o resultado guardado num buffer. Note-se que este buffer funciona como um armazém, monitorizado por um thread Consumidor, que envia os resultados, um a um, para C. 
-
 
 # **Compilation**
 
