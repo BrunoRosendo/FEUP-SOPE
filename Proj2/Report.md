@@ -14,13 +14,31 @@ To compile simply do make on the src folder.
  
 # **Running**
 
-To run the program, call the executable, followed by the running time (seconds) and the public fifo name.
+In order to use the client, we need to have the server running aswell.
+
+**Client**
+
+To run the client, call the executable, followed by the running time (seconds) and the public fifo name.
 For example.
 > ./c -t 1 aFifo
 
 In a more general way
 
 > ./c <-t nsecs> <fifoname>
+ 
+ ```
+ ```
+ 
+**Server**
+ 
+To run the server, call the executable, followed by the running time (seconds), size of the buffer and the public fifo name.
+For example.
+> ./s -t 1 -l 1000 aFifo
+
+In a more general way
+
+> ./s <-t nsecs> [-l bufsz] <fifoname>
+ 
  
 # **Errors and input**
 
@@ -34,8 +52,8 @@ Failure to provide a name for the fifo will yield an error.
   
 1. Parse the command arguments
 2. Synchronize with the server
-3. Generate requests by creating request threads
-4. Wait for the response from the server
+3. Generate requests by creating request threads and sending them through the public fifo
+4. Create private fifo and wait for the response from the server, which will be sent through this newly created channel.
 
 During this steps, the client will also register operations such as:
 * Client request thread makes initial request (IWANT)
