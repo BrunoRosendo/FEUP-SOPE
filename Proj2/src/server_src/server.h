@@ -2,6 +2,7 @@
 #define SERVER_H_
 
 #include "parsing.h"
+#include "communication.h"
 
 /**
  * Makes all the needed operations for the start of the program

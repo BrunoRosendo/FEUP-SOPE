@@ -6,7 +6,8 @@ void init(int argc, char* argv[], Settings* settings) {
 }
 
 void exitProgram(Settings* settings) {
-
+    close(settings->fd);
+    unlink(settings->fifoname);
 }
 
 int main(int argc, char *argv[]) {

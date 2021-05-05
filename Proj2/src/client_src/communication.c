@@ -9,7 +9,6 @@ static pthread_t *threads;
 pthread_mutex_t lock;
 
 void syncWithServer(Settings* settings) {
-    // There's an error if the server already created the FIFO
 
     fprintf(stderr, "Synchronizing with server...\n");
     /*
