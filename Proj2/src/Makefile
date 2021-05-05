@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS = -Wall -Wextra
 LIBS = -pthread
 
-SERVER_SRC = server_src/server.c server_src/delay.c server_src/lib.c
+SERVER_SRC = server_src/server.c server_src/delay.c server_src/lib.c server_src/parsing.c
 CLIENT_SRC = client_src/client.c client_src/parsing.c client_src/communication.c
 
 SERVER_OBJ = $(SERVER_SRC:.c=.o)
@@ -23,4 +23,4 @@ $(CLIENT_EXEC): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o
+	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o server_src/server.o server_src/parsing.o

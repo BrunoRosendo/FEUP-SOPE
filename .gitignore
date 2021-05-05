@@ -5,5 +5,4 @@ s
 *.o
 *.d
 !Proj2/src/server_src/lib.o
-!Proj2/src/server_src/server.o
 Proj2/src/*.txt
