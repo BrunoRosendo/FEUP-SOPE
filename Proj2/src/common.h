@@ -15,7 +15,7 @@
 
 // Time variables
 #define MAX_TIME_WAITING_FIFO 30
-#define TIME_BETWEEN_ATTEMPTS_FIFO 5000
+#define TIME_BETWEEN_ATTEMPTS_FIFO 100
 
 // Client request thread makes initial request
 #define CLIENT_WANTS "IWANT"

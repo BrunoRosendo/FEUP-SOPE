@@ -3,10 +3,14 @@
 void init(int argc, char* argv[], Settings* settings) {
     if (parseCMDArgs(argc, argv, settings))
         exit(1);
+
+    if (mkfifo(settings->fifoname, FIFO_PUBLIC_PERMS)) {
+        fprintf(stderr, "[server] Error opening fifo\n");
+        exit(2);
+    }
 }
 
 void exitProgram(Settings* settings) {
-    close(settings->fd);
     unlink(settings->fifoname);
 }
 
@@ -20,7 +24,7 @@ int main(int argc, char *argv[]) {
     Settings settings;
     init(argc, argv, &settings);
 
-
+    listenAndRespond(&settings);
 
     exitProgram(&settings);
 

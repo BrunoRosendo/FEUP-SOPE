@@ -3,12 +3,29 @@
 
 #include "aux.h"
 
+void setupForLoop(int bufferSize);
+
+void exitLoop(int lastThread);
+
 /**
- * Creates a FIFO and waits for the client to synchronize
- * Updates the file descriptor in the settings
- * @param settings Keeps the fifo name that is to be created
-*/
-void syncWithClient(Settings* settings);
+ * Waits for all the created threads to finish their tasks. Also frees the threads array
+ * @param numThreads Index of the last created thread
+ */
+void waitForAllThreads(int lastThread);
+
+/**
+ * Main loop of the program. Does everything important
+ */
+void listenAndRespond(Settings* settings);
+
+/**
+ * New-born thread function, to process requests by calling the library
+ */
+void *processRequest(void* arg);
+
+void dispatchResults();
+
+void getNewRequest(int* i, char* fifoName);
 
 /**
  * Registers an operation to the stdout

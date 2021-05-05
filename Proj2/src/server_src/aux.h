@@ -9,8 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <semaphore.h>
 
 // System libs
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "../common.h"
 
@@ -25,7 +30,6 @@
 typedef struct Settings {
     time_t execTime; /** Program max execution time */
     char fifoname[MAX_PATH_SIZE]; /** Public fifo's name */
-    int fd;  /** Public fifo's file descriptor */
     int bufferSize;  /** Size of the buffer used to store results */
 } Settings;
 
