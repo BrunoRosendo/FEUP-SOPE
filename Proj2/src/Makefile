@@ -23,4 +23,4 @@ $(CLIENT_EXEC): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o server_src/server.o server_src/parsing.o server_src/communication.o
+	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/*.o server_src/*.d
