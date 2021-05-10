@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 
 #include "../common.h"
+#include "./lib.h"
 
 /* CONSTANTS */
 #define MAX_BUFFER_SIZE 500

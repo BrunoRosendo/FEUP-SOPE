@@ -29,7 +29,8 @@ void *processRequest(void* arg) {
     sem_wait(&semaphore);
     Message* request = (Message*) arg;
 
-    /* CALCULATE RES FROM LIB AND PUT IN BUFFER */
+    request->tskres = task(request->tskload);
+    buffer[numResults++] = *request;
 
     free(request);
     sem_post(&semaphore);
