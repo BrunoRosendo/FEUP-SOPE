@@ -7,10 +7,11 @@ static Message* buffer;
 static pthread_t *threads;
 
 static sem_t semaphore;
+static Settings* settings;
 
-
-void listenAndRespond(Settings* settings) {
-    setupForLoop(settings->bufferSize);
+void listenAndRespond(Settings* set) {
+    settings = set;
+    setupForLoop();
     int i = 0;
 
     while (1) {
@@ -19,28 +20,42 @@ void listenAndRespond(Settings* settings) {
             break;
         }
 
-        getNewRequest(&i, settings->fifoname);
+        if (settings->fd == -1) {
+            settings->fd = open(settings->fifoname, O_RDONLY, O_NONBLOCK);
+            usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
+            continue;
+        }
+
+        getNewRequest(&i);
         dispatchResults();
     }
     exitLoop(i);
 }
 
 void *processRequest(void* arg) {
-    sem_wait(&semaphore);
-    Message* request = (Message*) arg;
+    while (1) {
+        sem_wait(&semaphore);
 
-    request->tskres = task(request->tskload);
-    buffer[numResults++] = *request;
+        if (numResults >= settings->bufferSize) {
+            sem_post(&semaphore);
+            usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
+            continue;
+        }
 
-    free(request);
+        Message* request = (Message*) arg;
+
+        request->tskres = task(request->tskload);
+        buffer[numResults++] = *request;
+
+        free(request);
+        break;
+    }
     sem_post(&semaphore);
     return NULL;
 }
 
 void dispatchResults() {
-    // TODO: CHECK IF THIS IS RIGHT
     sem_wait(&semaphore);
-
     for (int i = 0; i < numResults; ++i) {
         Message message = buffer[i];
 
@@ -52,36 +67,33 @@ void dispatchResults() {
         message.pid = getpid();
         message.tid = pthread_self();
         write(fd, &message, sizeof(Message));
+        registerOperation(message.rid, message.tskload, message.pid,
+                        message.tid, message.tskres, SERVER_SENT_RESULT);
     }
 
     numResults = 0;
     sem_post(&semaphore);
 }
 
-void getNewRequest(int* i, char* fifoName) {
-    int fd = open(fifoName, O_RDONLY, O_NONBLOCK);
-    if (fd == -1) {
-        usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
-        return;
-    }
-
+void getNewRequest(int* i) {
     Message* request = (Message*) malloc(sizeof(Message));
-    if (read(fd, request, sizeof(Message)) >= 0) {
+
+    if (read(settings->fd, request, sizeof(Message)) > 0) {
         // Success
         pthread_create(&threads[*i], NULL, processRequest, (void*)request);
+        registerOperation(request->rid, request->tskload, getpid(),
+                        pthread_self(), -1, SERVER_RCVD);
 
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
     } else {
         // Error
     }
-
-    close(fd);
 }
 
-void setupForLoop(int bufferSize) {
+void setupForLoop() {
     time(&startTime);
-    buffer = (Message*) malloc(bufferSize * sizeof(Message));
+    buffer = (Message*) malloc(settings->bufferSize * sizeof(Message));
     threads = (pthread_t*) malloc(sizeof(pthread_t));
     sem_init(&semaphore, 0, 1);
 }
@@ -93,8 +105,10 @@ void exitLoop(int lastThread) {
 }
 
 void waitForAllThreads(int lastThread) {
-    for (int i = 0; i <= lastThread; ++i)
+    for (int i = 0; i <= lastThread; ++i) {
+        dispatchResults();
         pthread_join(threads[i], NULL);
+    }
     free(threads);
 }
 

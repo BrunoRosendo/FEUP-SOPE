@@ -3,7 +3,7 @@
 
 #include "aux.h"
 
-void setupForLoop(int bufferSize);
+void setupForLoop();
 
 void exitLoop(int lastThread);
 
@@ -25,7 +25,7 @@ void *processRequest(void* arg);
 
 void dispatchResults();
 
-void getNewRequest(int* i, char* fifoName);
+void getNewRequest(int* i);
 
 /**
  * Registers an operation to the stdout
