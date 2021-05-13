@@ -46,6 +46,9 @@ void *processRequest(void* arg) {
 
         request->tskres = task(request->tskload);
         buffer[numResults++] = *request;
+    
+        registerOperation(request->rid, request->tskload, getpid(),
+                        pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
 
         free(request);
         break;
@@ -87,6 +90,7 @@ void getNewRequest(int* i) {
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
     } else {
+        printf("Error reading new request errno: %d\n", errno);
         // Error
     }
 }
@@ -95,7 +99,7 @@ void setupForLoop() {
     time(&startTime);
     buffer = (Message*) malloc(settings->bufferSize * sizeof(Message));
     threads = (pthread_t*) malloc(sizeof(pthread_t));
-    sem_init(&semaphore, 0, 1);
+    sem_init(&semaphore, 0, 1); 
 }
 
 void exitLoop(int lastThread) {
@@ -106,8 +110,8 @@ void exitLoop(int lastThread) {
 
 void waitForAllThreads(int lastThread) {
     for (int i = 0; i <= lastThread; ++i) {
-        dispatchResults();
         pthread_join(threads[i], NULL);
+        dispatchResults();  // call this after joining each thread
     }
     free(threads);
 }
