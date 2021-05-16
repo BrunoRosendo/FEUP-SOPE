@@ -38,6 +38,7 @@ void listenAndRespond(Settings* set) {
 void *processRequest(void* arg) {
     /* Should Calculate the task result here since
         if we do it inside the lock we would be wasting a lot of time
+        (?) Possible problem since we still execute the task 
      */
     Message* request = (Message*) arg;
     request->tskres = task(request->tskload);
@@ -50,11 +51,13 @@ void *processRequest(void* arg) {
             usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
             continue;
         }
-        
+        if (serverTimeOver) request->tskres = -1;
         buffer[numResults++] = *request;
 
-        registerOperation(request->rid, request->tskload, getpid(),
-                        pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
+        if (!serverTimeOver) {
+            registerOperation(request->rid, request->tskload, getpid(),
+                pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
+        }
 
         free(request);
         break;
@@ -72,14 +75,21 @@ void dispatchResults() {
         snprintf(fifoName, MAX_PATH_SIZE, "/tmp/%d.%lu",
                 message.pid, message.tid);
 
-        int fd = open(fifoName, O_WRONLY);
         message.pid = getpid();
         message.tid = pthread_self();
-        if (serverTimeOver) message.tskres = -1;
+
+        int fd = open(fifoName, O_WRONLY);
+
+        if (fd == -1) {  // Error opening
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, -1, SERVER_PRIVATE_FIFO_CLOSED);
+            continue;
+        }
+
         write(fd, &message, sizeof(Message));
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, message.tskres,
-            serverTimeOver? SERVER_REQUEST_2LATE : SERVER_SENT_RESULT);
+            message.tskres == -1? SERVER_REQUEST_2LATE : SERVER_SENT_RESULT);
         close(fd);
     }
 
