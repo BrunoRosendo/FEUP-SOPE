@@ -9,6 +9,8 @@ static pthread_t *threads;
 static sem_t semaphore;
 static Settings* settings;
 
+int serverTimeOver = 0;
+
 void listenAndRespond(Settings* set) {
     settings = set;
     setupForLoop();
@@ -17,6 +19,7 @@ void listenAndRespond(Settings* set) {
     while (1) {
         if (time(NULL) - startTime > settings->execTime) {
             fprintf(stderr, "[server] Execution time reached. Exiting...\n");
+            serverTimeOver = 1;
             break;
         }
 
@@ -33,6 +36,12 @@ void listenAndRespond(Settings* set) {
 }
 
 void *processRequest(void* arg) {
+    /* Should Calculate the task result here since
+        if we do it inside the lock we would be wasting a lot of time
+     */
+    Message* request = (Message*) arg;
+    request->tskres = task(request->tskload);
+
     while (1) {
         sem_wait(&semaphore);
 
@@ -41,12 +50,9 @@ void *processRequest(void* arg) {
             usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
             continue;
         }
-
-        Message* request = (Message*) arg;
-
-        request->tskres = task(request->tskload);
+        
         buffer[numResults++] = *request;
-    
+
         registerOperation(request->rid, request->tskload, getpid(),
                         pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
 
@@ -69,9 +75,12 @@ void dispatchResults() {
         int fd = open(fifoName, O_WRONLY);
         message.pid = getpid();
         message.tid = pthread_self();
+        if (serverTimeOver) message.tskres = -1;
         write(fd, &message, sizeof(Message));
         registerOperation(message.rid, message.tskload, message.pid,
-                        message.tid, message.tskres, SERVER_SENT_RESULT);
+            message.tid, message.tskres,
+            serverTimeOver? SERVER_REQUEST_2LATE : SERVER_SENT_RESULT);
+        close(fd);
     }
 
     numResults = 0;
@@ -103,6 +112,7 @@ void setupForLoop() {
 }
 
 void exitLoop(int lastThread) {
+    close(settings->fd);
     waitForAllThreads(lastThread);
     free(buffer);
     sem_destroy(&semaphore);
