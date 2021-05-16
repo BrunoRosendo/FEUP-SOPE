@@ -41,7 +41,12 @@ void *processRequest(void* arg) {
         (?) Possible problem since we still execute the task 
      */
     Message* request = (Message*) arg;
-    request->tskres = task(request->tskload);
+
+    if (serverTimeOver) {
+        request->tskres = -1;
+    } else {
+        request->tskres = task(request->tskload);
+    }
 
     while (1) {
         sem_wait(&semaphore);
@@ -54,7 +59,7 @@ void *processRequest(void* arg) {
         if (serverTimeOver) request->tskres = -1;
         buffer[numResults++] = *request;
 
-        if (!serverTimeOver) {
+        if (/*!serverTimeOver*/1) {
             registerOperation(request->rid, request->tskload, getpid(),
                 pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
         }
