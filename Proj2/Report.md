@@ -59,6 +59,12 @@ During this steps, the client will also register operations such as:
 * Client request thread informs that the request was rejected, because the server was closed (CLOSD)
 * Client request thread informs that he can no longer wait for the answer (GAVUP)
 
+* Server accepts IWANT from Client
+* Server saves IWANT on a queue
+* Server processes and deals with the requests
+* Server saves all final results
+* Server returns all final results
+
 ```
 ```
 
