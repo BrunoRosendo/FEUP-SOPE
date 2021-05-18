@@ -46,6 +46,8 @@ void *processRequest(void* arg) {
         request->tskres = -1;
     } else {
         request->tskres = task(request->tskload);
+        registerOperation(request->rid, request->tskload, getpid(),
+                pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
     }
 
     while (1) {
@@ -58,11 +60,6 @@ void *processRequest(void* arg) {
         }
         if (serverTimeOver) request->tskres = -1;
         buffer[numResults++] = *request;
-
-        if (/*!serverTimeOver*/1) {
-            registerOperation(request->rid, request->tskload, getpid(),
-                pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
-        }
 
         free(request);
         break;
@@ -113,9 +110,6 @@ void getNewRequest(int* i) {
 
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
-    } else {
-        printf("Error reading new request errno: %d\n", errno);
-        // Error
     }
 }
 
@@ -128,6 +122,7 @@ void setupForLoop() {
 
 void exitLoop(int lastThread) {
     close(settings->fd);
+    unlink(settings->fifoname);
     waitForAllThreads(lastThread);
     free(buffer);
     sem_destroy(&semaphore);

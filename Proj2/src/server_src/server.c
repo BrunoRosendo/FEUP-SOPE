@@ -28,7 +28,5 @@ int main(int argc, char *argv[]) {
 
     listenAndRespond(&settings);
 
-    exitProgram(&settings);
-
     return 0;
 }
