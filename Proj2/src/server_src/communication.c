@@ -161,4 +161,6 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper) {
         printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
             rid, tskload, pid, tid, tskres, oper);
+        fflush(stdout);
+        fflush(stderr);
 }
