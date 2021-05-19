@@ -36,18 +36,21 @@ void listenAndRespond(Settings* set) {
 }
 
 void *processRequest(void* arg) {
+    /* Free the arg as soon as possible to avoid
+    making the heap full */
+    Message* toFree = (Message *)arg;
+    Message request = *toFree;
+    free(toFree);
+
     /* Should Calculate the task result here since
         if we do it inside the lock we would be wasting a lot of time
-        (?) Possible problem since we still execute the task 
      */
-    Message* request = (Message*) arg;
-
     if (serverTimeOver) {
-        request->tskres = -1;
+        request.tskres = -1;
     } else {
-        request->tskres = task(request->tskload);
-        registerOperation(request->rid, request->tskload, getpid(),
-                pthread_self(), request->tskres, SERVER_PRODUCER_HAS_RESULT);
+        request.tskres = task(request.tskload);
+        registerOperation(request.rid, request.tskload, getpid(),
+                pthread_self(), request.tskres, SERVER_PRODUCER_HAS_RESULT);
     }
 
     while (1) {
@@ -61,9 +64,8 @@ void *processRequest(void* arg) {
 
         // if (serverTimeOver) request->tskres = -1;
 
-        buffer[numResults++] = *request;
+        buffer[numResults++] = request;
 
-        free(request);
         break;
     }
     sem_post(&semaphore);
@@ -106,10 +108,10 @@ int getNewRequest(int* i) {
 
     int readStatus = read(settings->fd, request, sizeof(Message));
     if ( readStatus > 0) {
-        // Successq
-        pthread_create(&threads[*i], NULL, processRequest, (void*)request);
+        // Success
         registerOperation(request->rid, request->tskload, getpid(),
                         pthread_self(), -1, SERVER_RCVD);
+        pthread_create(&threads[*i], NULL, processRequest, (void*)request);
 
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
