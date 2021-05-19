@@ -92,7 +92,12 @@ void dispatchResults() {
             continue;
         }
 
-        write(fd, &message, sizeof(Message));
+        if (write(fd, &message, sizeof(Message)) == -1) {
+            registerOperation(message.rid, message.tskload, message.pid,
+                message.tid, -1, SERVER_PRIVATE_FIFO_CLOSED);
+            continue;
+        }
+        
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, message.tskres,
             message.tskres == -1? SERVER_REQUEST_2LATE : SERVER_SENT_RESULT);
@@ -114,6 +119,7 @@ int getNewRequest(int* i) {
         pthread_create(&threads[*i], NULL, processRequest, (void*)request);
 
         ++(*i);
+        
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
     } else if (readStatus == 0) {
         return 0;
@@ -141,7 +147,7 @@ void exitLoop(int *lastThread) {
 }
 
 void waitForAllThreads(int lastThread) {
-    for (int i = 0; i <= lastThread; ++i) {
+    for (int i = 0; i < lastThread; ++i) {
         pthread_join(threads[i], NULL);
         dispatchResults();  // call this after joining each thread
     }
@@ -162,6 +168,4 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper) {
         printf("%lu ; %d ; %d ; %d ; %lu ; %d ; %s\n", time(NULL),
             rid, tskload, pid, tid, tskres, oper);
-        fflush(stdout);
-        fflush(stderr);
 }
