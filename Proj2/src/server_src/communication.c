@@ -107,7 +107,7 @@ int getNewRequest(int* i) {
     Message* request = (Message*) malloc(sizeof(Message));
 
     int readStatus = read(settings->fd, request, sizeof(Message));
-    if ( readStatus > 0) {
+    if (readStatus > 0) {
         // Success
         registerOperation(request->rid, request->tskload, getpid(),
                         pthread_self(), -1, SERVER_RCVD);
@@ -115,8 +115,9 @@ int getNewRequest(int* i) {
 
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
+    } else if (readStatus == 0) {
+        return 0;
     }
-    else if(readStatus == 0) return 0;
 
     return 1;
 }
@@ -125,14 +126,14 @@ void setupForLoop() {
     time(&startTime);
     buffer = (Message*) malloc(settings->bufferSize * sizeof(Message));
     threads = (pthread_t*) malloc(sizeof(pthread_t));
-    sem_init(&semaphore, 0, 1); 
+    sem_init(&semaphore, 0, 1);
 }
 
 void exitLoop(int *lastThread) {
-    unlink(settings->fifoname); // prevents the client to write to the fifo
+    unlink(settings->fifoname);  // prevents the client to write to the fifo
     emptyPublicFifo(lastThread);
     waitForAllThreads(*lastThread);
-    
+
     close(settings->fd);
 
     free(buffer);
@@ -148,10 +149,10 @@ void waitForAllThreads(int lastThread) {
 }
 
 void emptyPublicFifo(int* i) {
-    while(1) {
+    while (1) {
         int publicFifoStatus = getNewRequest(i);
 
-        if(publicFifoStatus == 0) break;
+        if (publicFifoStatus == 0) break;
 
         dispatchResults();
     }

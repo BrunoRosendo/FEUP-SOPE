@@ -42,6 +42,10 @@ int getNewRequest(int* i);
 void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper);
 
+/**
+ * Reads all client requests that are already on the public fifo
+ * before it was closed for writing
+ */ 
 void emptyPublicFifo(int *i);
 
-#endif
+#endif  // SRC_SERVER_SRC_COMMUNICATION_H_"
