@@ -5,7 +5,7 @@
 
 void setupForLoop();
 
-void exitLoop(int lastThread);
+void exitLoop(int *lastThread);
 
 /**
  * Waits for all the created threads to finish their tasks. Also frees the threads array
@@ -25,7 +25,10 @@ void *processRequest(void* arg);
 
 void dispatchResults();
 
-void getNewRequest(int* i);
+/**
+ * @return 1 on success. Returns 0 if EOF (Client closed public fifo)
+ */ 
+int getNewRequest(int* i);
 
 /**
  * Registers an operation to the stdout
@@ -38,5 +41,7 @@ void getNewRequest(int* i);
  */ 
 void registerOperation(int rid, int tskload, int pid, pthread_t tid,
     int tskres, char* oper);
+
+void emptyPublicFifo(int *i);
 
 #endif
