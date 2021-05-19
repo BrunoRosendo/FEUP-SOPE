@@ -60,6 +60,7 @@ During this steps, the client will also register operations such as:
 * Client request thread informs that the request was rejected, because the server was closed (CLOSD)
 * Client request thread informs that he can no longer wait for the answer (GAVUP)
 
+<<<<<<< HEAD
 # **Server**
 
 ## **Errors and input**
@@ -97,6 +98,13 @@ When dispatching a request there are three options:
 + The response of the request is -1. This means that the request was received after the servers deadline -> Register 2LATE
 + Everything was successful -> Register TSKDN
 
+=======
+* Server accepts IWANT from Client
+* Server saves IWANT on a queue
+* Server processes and deals with the requests
+* Server saves all final results
+* Server returns all final results
+>>>>>>> bb5dd65e7fed87318099228ade497e8baed1f121
 
 ```
 ```
