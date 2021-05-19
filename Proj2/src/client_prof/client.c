@@ -143,8 +143,9 @@ int main(int argc, char** argv) {
 		if (finish)	// client timeout!
 			pthread_exit(NULL);
 	}
-
-	srand(time(NULL));	// seed the task "loads"
+	time_t thisTime = time(NULL);
+	srand(1621438100);	// seed the task "loads"
+	printf("%ld\n", thisTime);
 	pthread_t tid;	// temporary, for any of the client threads
 
 	// launches requests until client times out
