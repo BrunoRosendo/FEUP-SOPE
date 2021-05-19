@@ -4,13 +4,15 @@ void init(int argc, char* argv[], Settings* settings) {
     if (parseCMDArgs(argc, argv, settings))
         exit(1);
 
-    if (mkfifo(settings->fifoname, FIFO_PUBLIC_PERMS)) {
+    if (mkfifo(settings->fifoname, FIFO_PUBLIC_PERMS) && errno != EEXIST) {
         fprintf(stderr, "[server] Error opening fifo\n");
         exit(2);
     }
+    settings->fd = -1;
 }
 
 void exitProgram(Settings* settings) {
+    close(settings->fd);
     unlink(settings->fifoname);
 }
 
@@ -25,8 +27,6 @@ int main(int argc, char *argv[]) {
     init(argc, argv, &settings);
 
     listenAndRespond(&settings);
-
-    exitProgram(&settings);
 
     return 0;
 }

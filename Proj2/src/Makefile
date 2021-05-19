@@ -9,7 +9,6 @@ SERVER_OBJ = $(SERVER_SRC:.c=.o)
 CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
 
 SERVER_EXEC = s
-CLIENT_EXEC = c
 
 all: $(SERVER_EXEC) $(CLIENT_EXEC)
 
@@ -23,4 +22,4 @@ $(CLIENT_EXEC): $(CLIENT_OBJ)
 	$(CC) $(CFLAGS) -o $@ $(CLIENT_OBJ) $(LIBS)
 
 clean:
-	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/delay.o server_src/server.o server_src/parsing.o server_src/communication.o
+	rm -rf $(SERVER_EXEC) $(CLIENT_EXEC) *.o *.d client_src/*.o client_src/*.d server_src/*.o server_src/*.d

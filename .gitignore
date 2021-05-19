@@ -4,5 +4,4 @@ c
 s
 *.o
 *.d
-!Proj2/src/server_src/lib.o
 Proj2/src/*.txt

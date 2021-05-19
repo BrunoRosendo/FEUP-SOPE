@@ -12,12 +12,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <semaphore.h>
+#include <errno.h>
 
 // System libs
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "../common.h"
+#include "./lib.h"
 
 /* CONSTANTS */
 #define MAX_BUFFER_SIZE 500
@@ -31,6 +33,7 @@ typedef struct Settings {
     time_t execTime; /** Program max execution time */
     char fifoname[MAX_PATH_SIZE]; /** Public fifo's name */
     int bufferSize;  /** Size of the buffer used to store results */
+    int fd; /** File descriptor of the fifo */
 } Settings;
 
 #endif  // AUX_H_
