@@ -32,7 +32,7 @@ void listenAndRespond(Settings* set) {
         getNewRequest(&i);
         dispatchResults();
     }
-    exitLoop(i);
+    exitLoop(&i);
 }
 
 void *processRequest(void* arg) {
@@ -58,7 +58,9 @@ void *processRequest(void* arg) {
             usleep(TIME_BETWEEN_ATTEMPTS_FIFO);
             continue;
         }
-        if (serverTimeOver) request->tskres = -1;
+
+        // if (serverTimeOver) request->tskres = -1;
+
         buffer[numResults++] = *request;
 
         free(request);
@@ -99,11 +101,12 @@ void dispatchResults() {
     sem_post(&semaphore);
 }
 
-void getNewRequest(int* i) {
+int getNewRequest(int* i) {
     Message* request = (Message*) malloc(sizeof(Message));
 
-    if (read(settings->fd, request, sizeof(Message)) > 0) {
-        // Success
+    int readStatus = read(settings->fd, request, sizeof(Message));
+    if ( readStatus > 0) {
+        // Successq
         pthread_create(&threads[*i], NULL, processRequest, (void*)request);
         registerOperation(request->rid, request->tskload, getpid(),
                         pthread_self(), -1, SERVER_RCVD);
@@ -111,6 +114,9 @@ void getNewRequest(int* i) {
         ++(*i);
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
     }
+    else if(readStatus == 0) return 0;
+
+    return 1;
 }
 
 void setupForLoop() {
@@ -120,10 +126,13 @@ void setupForLoop() {
     sem_init(&semaphore, 0, 1); 
 }
 
-void exitLoop(int lastThread) {
+void exitLoop(int *lastThread) {
+    unlink(settings->fifoname); // prevents the client to write to the fifo
+    emptyPublicFifo(lastThread);
+    waitForAllThreads(*lastThread);
+    
     close(settings->fd);
-    unlink(settings->fifoname);
-    waitForAllThreads(lastThread);
+
     free(buffer);
     sem_destroy(&semaphore);
 }
@@ -134,6 +143,16 @@ void waitForAllThreads(int lastThread) {
         dispatchResults();  // call this after joining each thread
     }
     free(threads);
+}
+
+void emptyPublicFifo(int* i) {
+    while(1) {
+        int publicFifoStatus = getNewRequest(i);
+
+        if(publicFifoStatus == 0) break;
+
+        dispatchResults();
+    }
 }
 
 void registerOperation(int rid, int tskload, int pid, pthread_t tid,
