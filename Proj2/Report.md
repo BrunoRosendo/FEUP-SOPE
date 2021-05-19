@@ -36,9 +36,10 @@ For example.
 In a more general way
 
 > ./s <-t nsecs> [-l bufsz] <fifoname>
- 
- 
-# **Errors and input**
+    
+#Client 
+
+## **Errors and input**
 
 There must always be exactly 4 arguments (including the program call).
 
@@ -46,7 +47,7 @@ Failure to provide a valid flag (-t) or time will yield an error.
 
 Failure to provide a name for the fifo will yield an error.
   
-# **Implementation**
+## **Implementation**
   
 1. Parse the command arguments
 2. Synchronize with the server
@@ -59,11 +60,43 @@ During this steps, the client will also register operations such as:
 * Client request thread informs that the request was rejected, because the server was closed (CLOSD)
 * Client request thread informs that he can no longer wait for the answer (GAVUP)
 
-* Server accepts IWANT from Client
-* Server saves IWANT on a queue
-* Server processes and deals with the requests
-* Server saves all final results
-* Server returns all final results
+# **Server**
+
+## **Errors and input**
+
+There must be either 4 or 6 arguments, without or with buffer size specification (including the program call).
+
+Failure to provide a valid flag (-t) or time will yield an error.
+
+Not providing a buffer size will make it have a default value.
+Buffer size can be specified by doing -l bufsz after the server's time of execution
+
+Failure to provide a name for the fifo will yield an error.
+
+## **Implementation**
+
+1. Parse the command arguments
+2. Create the fifo for the client's use
+3. Create the thread and responses buffer and init the semaphore
+4. While the server has not passed its execution deadline
+    1. Read from the public fifo getting a new request
+       + Register RECVD
+    2. Create a new thread to process that request
+        + The thread will calculate the result and register TSKEX
+        + Then, if the buffer is not being used by another thread, add it to the buffer. If the buffer is full, it will wait until that is no longer the case
+    3. Dispatch all requests that have been stored
+5. After the server has passed the execution deadline
+    1. Unlink the public fifo so the client can no longer make requests
+    2. Empty the fifo of any requests that might be remaining. This will be identical to point 4 with the difference that TSKEX won't be issued
+    3. Wait for the conclusion of any possibly running thread. After joining a thread, the result should be dispatched 
+   
+Dispatching requests will involve fetching them from the buffer. Therefore, the semaphore is locked during this time.
+Afterwards, the number of requests stored in the buffer is reset to 0.
+When dispatching a request there are three options:
++ The private fifo is closed -> Register FAILD
++ The response of the request is -1. This means that the request was received after the servers deadline -> Register 2LATE
++ Everything was successful -> Register TSKDN
+
 
 ```
 ```
