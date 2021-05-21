@@ -145,7 +145,6 @@ int main(int argc, char** argv) {
 	}
 
 	time_t thisTime = time(NULL);
-	// problematic seed - 1621438100
 	srand(thisTime);	// seed the task "loads"
 	printf("%ld\n", thisTime);
 	pthread_t tid;	// temporary, for any of the client threads
