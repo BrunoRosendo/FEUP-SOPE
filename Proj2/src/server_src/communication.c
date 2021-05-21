@@ -110,6 +110,7 @@ void dispatchResults() {
 
 int getNewRequest(int* i) {
     Message* request = (Message*) malloc(sizeof(Message));
+    if (request == NULL) return 0;
 
     int readStatus = read(settings->fd, request, sizeof(Message));
     if (readStatus > 0) {
