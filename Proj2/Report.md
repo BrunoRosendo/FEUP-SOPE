@@ -34,7 +34,7 @@ In a more general way
 
 > ./s -t <-nsecs> [-l <-bufferSize>] <-fifoname>
     
-#Client 
+# Client 
 
 ## **Errors and input**
 
