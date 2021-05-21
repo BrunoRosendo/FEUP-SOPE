@@ -97,7 +97,7 @@ void dispatchResults() {
                 message.tid, -1, SERVER_PRIVATE_FIFO_CLOSED);
             continue;
         }
-        
+
         registerOperation(message.rid, message.tskload, message.pid,
             message.tid, message.tskres,
             message.tskres == -1? SERVER_REQUEST_2LATE : SERVER_SENT_RESULT);
@@ -119,7 +119,7 @@ int getNewRequest(int* i) {
         pthread_create(&threads[*i], NULL, processRequest, (void*)request);
 
         ++(*i);
-        
+
         threads = (pthread_t*) realloc(threads, ((*i) + 1) * sizeof(pthread_t));
     } else if (readStatus == 0) {
         return 0;

@@ -48,4 +48,4 @@ void registerOperation(int rid, int tskload, int pid, pthread_t tid,
  */ 
 void emptyPublicFifo(int *i);
 
-#endif  // SRC_SERVER_SRC_COMMUNICATION_H_"
+#endif  // COMMUNICATION_H_"

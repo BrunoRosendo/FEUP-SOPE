@@ -18,4 +18,4 @@ void init(int argc, char* argv[], Settings* settings);
  */
 void exitProgram(Settings* settings);
 
-#endif
+#endif // SERVER_H_

@@ -12,4 +12,4 @@
  */ 
 int parseCMDArgs(int argc, char* argv[], Settings* settings);
 
-#endif
+#endif // PARSING_H_
