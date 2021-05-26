@@ -11,7 +11,7 @@ CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
 SERVER_EXEC = s
 CLIENT_EXEC = c
 
-all: $(SERVER_EXEC)
+all: $(SERVER_EXEC) $(CLIENT_EXEC)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
